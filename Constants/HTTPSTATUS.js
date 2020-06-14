@@ -1,4 +1,5 @@
-const cnstResponseStatusCode = {
+// response status code
+const HTTPSTATUS = {
   OK: 200,
   BADREQUEST: 400,
   UNAUTHORIZED: 401,
@@ -6,4 +7,4 @@ const cnstResponseStatusCode = {
   SERVERERROR: 500,
 };
 
-module.exports = cnstResponseStatusCode;
+export default HTTPSTATUS;

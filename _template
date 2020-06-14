@@ -1,0 +1,11 @@
+import { Router } from 'express';
+import { resBase } from '../Responses/resBase';
+
+const asdasdasdasdasd = Router();
+
+// zxczxczxczxc
+asdasdasdasdasd.get('/', (request, response) => {
+  throw new Error('not implemented')
+});
+
+export default asdasdasdasdasd;

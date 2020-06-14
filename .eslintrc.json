@@ -1,0 +1,31 @@
+{
+  "env": {
+    "es2020": true,
+    "node": true
+  },
+  "extends": ["standard"],
+  "parserOptions": {
+    "ecmaVersion": 11,
+    "sourceType": "module"
+  },
+  "rules": {
+    "comma-dangle": "off",
+    "semi": "off",
+    "quotes": "off",
+    "object-curly-spacing": "off",
+    "indent": "off",
+    "keyword-spacing": "off",
+    "eol-last": "off",
+    "no-unused-vars": "warn",
+    "no-multiple-empty-lines": "warn",
+    "space-infix-ops": "off",
+    "padded-blocks": "off",
+    "object-property-newline": "off",
+    "key-spacing": "off",
+    "object-curly-newline": "off",
+    "no-trailing-spaces": "off",
+    "quote-props": "off",
+    "no-multi-spaces": "off",
+    "comma-spacing": "off"
+  }
+}

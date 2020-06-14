@@ -1,15 +1,21 @@
-const mongoose = require('mongoose');
+import { Schema, model } from 'mongoose';
 
-const scmUser = new mongoose.Schema({
+const scmUser = new Schema({
   username: {
     type: String,
     required: true,
-    min: 3,
+    min: 2,
+    max: 100,
   },
   email: {
     type: String,
     required: true,
     max: 100,
+  },
+  name: {
+    type: String,
+    required: true,
+    max: 200,
   },
   password: {
     type: String,
@@ -20,9 +26,34 @@ const scmUser = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  ud: {
-    type: Date,
+  // fk: Department
+  department: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: 'Department',
   },
+  // fk: Position
+  position: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: 'Position',
+  },
+  // fk: Project[]
+  projects: [
+    Schema({
+      project: {
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: 'Project',
+      },
+      last_accessed: {
+        type: Date,
+        default: Date.now,
+      },
+    }),
+  ],
 });
 
-module.exports = mongoose.model('User', scmUser);
+const User = model('User', scmUser, 'users');
+
+export default User;

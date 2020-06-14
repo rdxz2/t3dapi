@@ -2,20 +2,33 @@
   "name": "t3dapi",
   "version": "1.0.0",
   "description": "to do driven development",
-  "main": "server.js",
+  "main": "start.js",
   "scripts": {
-    "start": "nodemon server.js",
+    "start": "nodemon start.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Richard Dharmawan",
   "license": "ISC",
   "dependencies": {
     "@hapi/joi": "^17.1.1",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
     "dotenv": "^8.2.0",
+    "esm": "^3.2.25",
     "express": "^4.17.1",
+    "joi-objectid": "^3.0.1",
+    "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.15",
     "moment": "^2.26.0",
     "mongoose": "^5.9.18"
+  },
+  "devDependencies": {
+    "eslint": "^7.2.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.21.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1"
   }
 }
