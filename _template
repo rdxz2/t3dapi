@@ -5,7 +5,7 @@ const asdasdasdasdasd = Router();
 
 // zxczxczxczxc
 asdasdasdasdasd.get('/', (request, response) => {
-  throw new Error('not implemented')
+  return resBase('not implemented', response);
 });
 
 export default asdasdasdasdasd;

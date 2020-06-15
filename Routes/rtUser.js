@@ -28,7 +28,7 @@ rtUser.get('/profileMinimal', rtFtJwt, async (request, response) => {
 
 // notifications
 rtUser.get('/notifications', rtFtJwt, (request, response) => {
-  response.send('', response);
+  return resBase('not implemented', response);
 });
 
 // recent projects
@@ -47,7 +47,7 @@ rtUser.get('/recentprojects', rtFtJwt, async (request, response) => {
     { $sort: { 'projects.last_accessed': -1 } },
     { $group: { _id: '$_id', projects: { $push: '$projects' } } },
     { $project: { _id: 0, projects: { $filter: { input: '$projects', as: 'project', cond: { $gt: ['$$project.last_accessed', minRecentDate] } } } } },
-    { $project: { projects: { last_accessed: 1, fk_project: { name: 1, code: 1, description: 1, fk_author: { name: 1 } } } } },
+    { $project: { projects: { last_accessed: 1, fk_project: { name: 1, code: 1, description: 1, author: 1, fk_author: { name: 1 } } } } },
   ]);
 
   // map user's recent project
@@ -57,29 +57,30 @@ rtUser.get('/recentprojects', rtFtJwt, async (request, response) => {
     author: project.fk_project.fk_author.name,
     description: project.fk_project.description,
     last_accessed: project.last_accessed,
+    is_owning: project.fk_project.author.toString() === request.user._id,
   }));
 
   return resBase(recentProjects, response);
 });
 
 // calendar schedules
-rtUser.get('/calendar', rtFtJwt, (request, response) => {
-  response.send('', response);
+rtUser.get('/schedule', rtFtJwt, (request, response) => {
+  return resBase('not implemented', response);
 });
 
 // recent activities
 rtUser.get('/recentactivities', rtFtJwt, (request, response) => {
-  response.send('', response);
+  return resBase('not implemented', response);
 });
 
 // get preferences
 rtUser.get('/preferences', rtFtJwt, (request, response) => {
-  response.send('', response);
+  return resBase('not implemented', response);
 });
 
 // set preferences
 rtUser.post('/preferences', rtFtJwt, (request, response) => {
-  response.send('', response);
+  return resBase('not implemented', response);
 });
 
 export default rtUser;

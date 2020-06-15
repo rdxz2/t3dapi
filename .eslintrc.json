@@ -26,6 +26,7 @@
     "no-trailing-spaces": "off",
     "quote-props": "off",
     "no-multi-spaces": "off",
-    "comma-spacing": "off"
+    "comma-spacing": "off",
+    "space-before-blocks": "off"
   }
 }

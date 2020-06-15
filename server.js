@@ -10,6 +10,7 @@ import rtBase from './Routes/rtBase';
 import rtSelectList from './Routes/rtSelectList';
 import rtUser from './Routes/rtUser';
 import rtProject from './Routes/rtProject';
+import rtToDo from './Routes/rtToDo';
 
 // initialize express app
 const app = express();
@@ -28,8 +29,8 @@ mongoose.connect(
   },
   // callback
   (error) => {
-    if (error) console.error(error);
-    else console.log(`connected to database ${process.env.CONNECTIONSTRING_T3DDB}`);
+    if (error) return console.error(error);
+    return console.log(`connected to database ${process.env.CONNECTIONSTRING_T3DDB}`);
   }
 );
 
@@ -38,7 +39,7 @@ mongoose.connect(
 // use cors
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN,
   })
 );
 
@@ -46,17 +47,21 @@ app.use(
 app.use(urlencoded({ extended: true }));
 app.use(json());
 
-// endpoint routes
+// START -- routes
+
 app.use('/', rtBase);
+
 app.use('/api/selectlist', rtSelectList);
+
 app.use('/api/authentication', rtAuthentication);
 app.use('/api/user', rtUser);
-app.use('/api/project', rtProject);
 
-// route not found
+app.use('/api/project', rtProject);
+app.use('/api/todo', rtToDo);
+
 app.all('*', (request, response) => resNotFound(`route [${request.method}] ${request.url}`, response));
 
-// app.use('/user', ctrlUser);
+// END -- routes
 
 // END -- configure middleware
 

@@ -15,9 +15,17 @@ const scmProject = new Schema({
     type: String,
     max: 1000,
   },
-  cd: {
+  create_date: {
     type: Date,
     default: Date.now,
+  },
+  update_date: {
+    type: Date,
+  },
+  is_active: {
+    type: Boolean,
+    required: true,
+    default: true,
   },
   // fk: User
   author: {

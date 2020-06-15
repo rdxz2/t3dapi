@@ -22,9 +22,14 @@ const scmUser = new Schema({
     required: true,
     max: 1024,
   },
-  cd: {
+  create_date: {
     type: Date,
     default: Date.now,
+  },
+  is_active: {
+    type: Boolean,
+    required: true,
+    default: true,
   },
   // fk: Department
   department: {

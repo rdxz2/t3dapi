@@ -1,0 +1,9 @@
+# t3dapi
+
+## .env file
+
+- CONNECTIONSTRING_T3DDB
+- PORT_T3DAPI
+- JWT_SECRET
+- JWT_ISS
+- JWT_AUD

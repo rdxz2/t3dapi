@@ -7,9 +7,14 @@ const scmPosition = new Schema({
     min: 1,
     max: 100,
   },
-  cd: {
+  create_date: {
     type: Date,
     default: Date.now,
+  },
+  is_active: {
+    type: Boolean,
+    required: true,
+    default: true,
   },
 });
 
