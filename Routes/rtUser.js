@@ -65,12 +65,12 @@ rtUser.get('/recentprojects', rtFtJwt, async (request, response) => {
 
 // calendar schedules
 rtUser.get('/schedule', rtFtJwt, (request, response) => {
-  return resBase('not implemented', response);
+  return resBase([], response);
 });
 
 // recent activities
 rtUser.get('/recentactivities', rtFtJwt, (request, response) => {
-  return resBase('not implemented', response);
+  return resBase([], response);
 });
 
 // get preferences
