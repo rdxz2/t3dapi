@@ -49,6 +49,7 @@ rtUser.get('/recentprojects', rtFtJwt, async (request, response) => {
     { $project: { _id: 0, projects: { $filter: { input: '$projects', as: 'project', cond: { $gt: ['$$project.last_accessed', minRecentDate] } } } } },
     { $project: { projects: { last_accessed: 1, fk_project: { name: 1, code: 1, description: 1, author: 1, fk_author: { name: 1 } } } } },
   ]);
+  if (!repoUserRecentProjects.length) return resBase([], response);
 
   // map user's recent project
   const recentProjects = repoUserRecentProjects[0].projects.map((project) => ({

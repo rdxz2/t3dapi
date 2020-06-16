@@ -6,7 +6,7 @@ const rtToDo = Router();
 
 // get all
 rtToDo.get('/:projectCode', rtFtJwt, (request, response) => {
-  return resBase('not implemented', response);
+  return resBase([], response);
 });
 
 // create

@@ -17,7 +17,14 @@ rtProject.get('/:projectCode', rtftJwt, async (request, response) => {
   const repoProject = await Project.findOne({ $and: [{ code: request.params.projectCode }, { $or: [{ author: request.user._id }, { collaborators: request.user._id }] }] });
   if (!repoProject) return resNotFound(`project '${request.params.projectCode}'`, response);
 
-  return resBase(repoProject, response);
+  return resBase(
+    {
+      code: repoProject.code,
+      name: repoProject.name,
+      is_owning: repoProject.author.toString() === request.user._id,
+    },
+    response
+  );
 });
 
 // create
@@ -116,17 +123,19 @@ rtProject.get('/edit/:projectCode', rtftJwt, async (request, response) => {
 });
 
 // edit
-rtProject.patch('/:projectCode', rtftJwt, async (request, response) => {
+rtProject.put('/:projectCode', rtftJwt, async (request, response) => {
   // validate model
   const { error: errorValidation } = vldtProjectEdit(request.body);
   if (errorValidation) return resValidationError(errorValidation, response);
 
-  // make sure project code is available
-  const repoProjectCount = await Project.countDocuments({ code: request.body.code });
-  if (repoProjectCount) return resIsExist(`project ${request.body.code}`, response);
+  // make sure project code is available (only if old and new project code is different)
+  if (request.params.projectCode !== request.body.code) {
+    const repoProjectCount = await Project.countDocuments({ code: request.body.code });
+    if (repoProjectCount) return resIsExist(`project ${request.body.code}`, response);
+  }
 
   // search for project
-  const tbuRepoProject = await Project.findOne({ $and: [{ code: request.params.projectCode }, { collaborators: request.user._id }] });
+  const tbuRepoProject = await Project.findOne({ $and: [{ code: request.params.projectCode }, { author: request.user._id }] });
   if (!tbuRepoProject) return resNotFound(`project ${request.params.projectCode}`, response);
 
   // make sure author is available
@@ -192,6 +201,8 @@ rtProject.patch('/:projectCode', rtftJwt, async (request, response) => {
 });
 
 // get activities
-rtProject.get('/activities/:projectCode', rtftJwt, async (request, response) => {});
+rtProject.get('/activities/:projectCode', rtftJwt, async (request, response) => {
+  return resBase([], response);
+});
 
 export default rtProject;
