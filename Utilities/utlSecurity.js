@@ -23,6 +23,6 @@ export const generateJwt = (data) =>
     {
       audience: process.env.JWT_AUD,
       issuer: process.env.JWT_ISS,
-      expiresIn: 60 * 1 * 1,
+      expiresIn: 2 * 1 * 1,
     }
   );

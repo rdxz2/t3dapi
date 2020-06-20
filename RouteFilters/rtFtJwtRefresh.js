@@ -13,10 +13,13 @@ const rtFtJwt = (request, response, next) => {
   // validate jwt (ignore exp)
   jsonwebtoken.verify(jwt, process.env.JWT_SECRET, { issuer: process.env.JWT_ISS, audience: process.env.JWT_AUD, ignoreExpiration: true }, (error, userInformation) => {
     // get current epoch time
-    const currentEpochTime = moment().valueOf();
+    const jwtExpiredDate = moment.unix(userInformation.exp);
+
+    // get current time
+    const now = moment();
 
     // make sure jwt is already expired
-    if (error || userInformation.exp > currentEpochTime) return resUnauthorized(response);
+    if (error || jwtExpiredDate.isAfter(now)) return resUnauthorized(response);
 
     // set user information
     request.user = userInformation;

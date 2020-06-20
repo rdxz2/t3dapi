@@ -120,12 +120,16 @@ rtAuthentication.post('/refresh', rtFtJwtRefresh, async (request, response) => {
   // make sure refresh token is not expired
   const refreshTokenExpiredDate = moment(tbuRepoUserRefreshToken.expired_date);
   const now = moment();
-  if (refreshTokenExpiredDate.isAfter(now)) return resUnauthorized(response);
+  if (refreshTokenExpiredDate.isBefore(now)) return resUnauthorized(response);
+
+  // generate new refresh token
+  const refreshToken = randtoken.generate(16);
 
   // generate new jwt
   const jwt = generateJwt({ _id: repoUser._id });
 
   // update db model: user refresh token
+  tbuRepoUserRefreshToken.refresh_token = refreshToken;
   tbuRepoUserRefreshToken.expired_date = moment().add(12, 'hour');
 
   try {
@@ -135,6 +139,7 @@ rtAuthentication.post('/refresh', rtFtJwtRefresh, async (request, response) => {
     return resBase(
       {
         token: jwt,
+        refreshToken,
       },
       response
     );
