@@ -17,14 +17,32 @@ rtProject.get('/:projectCode', rtftJwt, async (request, response) => {
   const repoProject = await Project.findOne({ $and: [{ code: request.params.projectCode }, { $or: [{ author: request.user._id }, { collaborators: request.user._id }] }] });
   if (!repoProject) return resNotFound(`project '${request.params.projectCode}'`, response);
 
-  return resBase(
-    {
-      code: repoProject.code,
-      name: repoProject.name,
-      is_owning: repoProject.author.toString() === request.user._id,
-    },
-    response
-  );
+  // get current user
+  const tbuRepoUser = await User.findOne({ _id: request.user._id });
+  if (!tbuRepoUser) return resNotFound('user', response);
+
+  // get current time
+  const now = moment();
+
+  // update db model: user
+  const tbuRepoUserProject = tbuRepoUser.projects.find((project) => project.project.toString() === repoProject._id.toString());
+  tbuRepoUserProject.last_accessed = now;
+
+  try {
+    // save user
+    await tbuRepoUser.save();
+
+    return resBase(
+      {
+        code: repoProject.code,
+        name: repoProject.name,
+        is_owning: repoProject.author.toString() === request.user._id,
+      },
+      response
+    );
+  } catch (error) {
+    return resException(error, response);
+  }
 });
 
 // create
@@ -105,6 +123,7 @@ rtProject.post('/', rtftJwt, async (request, response) => {
         author: tbuRepoUserAuthor.name,
         description: tbiRepoProjectSaved.description,
         last_accessed: moment(),
+        is_owning: true,
       },
       response
     );
@@ -142,21 +161,24 @@ rtProject.put('/:projectCode', rtftJwt, async (request, response) => {
   const repoUserAuthor = await User.findOne({ _id: request.user._id });
   if (!repoUserAuthor) return resNotFound('author', response);
 
-  // make sure new collaborators is available
-  const tbuRepoUsersNewCollaborator = await User.find({ _id: { $nin: tbuRepoProject.collaborators, $in: request.body.collaborators } });
-  if (tbuRepoUsersNewCollaborator.length !== request.body.collaborators.length) return resNotFound(`${request.body.collaborators.length - tbuRepoUsersNewCollaborator.length} collaborators`, response);
+  // get new collaborators
+  const tbuRepoUsersNewCollaboratorId = request.body.collaborators.filter((collaboratorId) => !tbuRepoProject.collaborators.includes(collaboratorId));
+  const tbuRepoUsersNewCollaborator = await User.find({ _id: { $in: tbuRepoUsersNewCollaboratorId } });
+  if (tbuRepoUsersNewCollaborator.length !== tbuRepoUsersNewCollaboratorId.length) return resNotFound(`${request.body.collaborators.length - tbuRepoUsersNewCollaborator.length} collaborators`, response);
 
   // get not collaborating collaborators
-  const tbdRepoUsersAlrCollaborating = await User.find({ _id: { $in: tbuRepoProject.collaborators, $nin: request.body.collaborators } });
-  if (tbdRepoUsersAlrCollaborating.length !== tbuRepoProject.collaborators.length) return resNotFound();
+  const tbdRepoUsersAlrCollaboratingId = tbuRepoProject.collaborators.filter((collaboratorId) => !request.body.collaborators.includes(collaboratorId));
+  const tbdRepoUsersAlrCollaborating = await User.find({ _id: { $in: tbdRepoUsersAlrCollaboratingId } });
+  if (tbdRepoUsersAlrCollaborating.length !== tbdRepoUsersAlrCollaboratingId.length) return resNotFound();
 
   // get current time
   const now = moment();
 
   // update db model: project
   tbuRepoProject.code = request.body.code;
-  tbuRepoProject.name = request.body.code;
+  tbuRepoProject.name = request.body.name;
   tbuRepoProject.description = request.body.description;
+  tbuRepoProject.collaborators = request.body.collaborators;
   tbuRepoProject.update_date = now;
 
   try {

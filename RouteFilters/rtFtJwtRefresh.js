@@ -1,5 +1,5 @@
 import jsonwebtoken from 'jsonwebtoken';
-
+import moment from 'moment';
 import { resUnauthorized } from '../Responses/resBase';
 
 const rtFtJwt = (request, response, next) => {
@@ -10,9 +10,13 @@ const rtFtJwt = (request, response, next) => {
   // get only the jwt string
   const jwt = authorizationHeader.replace('Bearer ', '');
 
-  // validate jwt
-  jsonwebtoken.verify(jwt, process.env.JWT_SECRET, { issuer: process.env.JWT_ISS, audience: process.env.JWT_AUD, ignoreExpiration: false }, (error, userInformation) => {
-    if (error) return resUnauthorized(response);
+  // validate jwt (ignore exp)
+  jsonwebtoken.verify(jwt, process.env.JWT_SECRET, { issuer: process.env.JWT_ISS, audience: process.env.JWT_AUD, ignoreExpiration: true }, (error, userInformation) => {
+    // get current epoch time
+    const currentEpochTime = moment().valueOf();
+
+    // make sure jwt is already expired
+    if (error || userInformation.exp > currentEpochTime) return resUnauthorized(response);
 
     // set user information
     request.user = userInformation;

@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
 
-import { resNotFound } from './Responses/resBase';
+import { resNotFound, resException } from './Responses/resBase';
 import rtAuthentication from './Routes/rtAuthentication';
 import rtBase from './Routes/rtBase';
 import rtSelectList from './Routes/rtSelectList';
