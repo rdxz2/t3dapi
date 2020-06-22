@@ -22,7 +22,8 @@
     "lodash": "^4.17.15",
     "moment": "^2.26.0",
     "mongoose": "^5.9.18",
-    "rand-token": "^1.0.1"
+    "rand-token": "^1.0.1",
+    "socket.io": "^2.3.0"
   },
   "devDependencies": {
     "eslint": "^7.2.0",

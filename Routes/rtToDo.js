@@ -18,7 +18,7 @@ rtToDo.get('/:projectCode', rtFtJwt, async (request, response) => {
   // search to do for this project
   const repoToDos = await Todo.find({ project: repoProject._id, description: { $regex: request.query.search || '', $options: 'i' } })
     .sort([['create_date', -1]])
-    .select('description is_completed is_important');
+    .select('description is_completed is_important priority');
 
   return resBase(repoToDos, response);
 });
@@ -26,10 +26,25 @@ rtToDo.get('/:projectCode', rtFtJwt, async (request, response) => {
 // detail
 rtToDo.get('/detail/:id', rtFtJwt, async (request, response) => {
   // search to do
-  const repoToDo = await Todo.findOne({ _id: request.params.id });
+  const repoToDo = await Todo.findOne({ _id: request.params.id }).populate('creator', 'name');
   if (!repoToDo) return resNotFound('to do', response);
 
-  return resBase(repoToDo, response);
+  return resBase(
+    {
+      _id: repoToDo._id,
+      creatorId: repoToDo.creator._id,
+      creatorName: repoToDo.creator.name,
+      description: repoToDo.description,
+      is_completed: repoToDo.is_completed,
+      is_active: repoToDo.is_active,
+      is_important: repoToDo.is_important,
+      priority: repoToDo.priority,
+      tags: repoToDo.tags,
+      create_date: repoToDo.create_date,
+      update_date: repoToDo.update_date,
+    },
+    response
+  );
 });
 
 // toggle complete
@@ -106,9 +121,9 @@ rtToDo.post('/tags/:id', rtFtJwt, async (request, response) => {
 });
 
 // change priority
-rtToDo.get('/priority/:priorityLevel', rtFtJwt, async (request, response) => {
+rtToDo.get('/priority/:id', rtFtJwt, async (request, response) => {
   // convert params to number
-  const priorityLevel = toInteger(request.params.priorityLevel);
+  const priorityLevel = toInteger(request.query.priorityLevel);
   if (!priorityLevel) return resNotFound('priority level', response);
 
   // check priority level in priority list
