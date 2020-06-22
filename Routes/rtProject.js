@@ -17,11 +17,11 @@ rtProject.get('/', rtftJwt, async (request, response) => {
 // get one
 rtProject.get('/:projectCode', rtftJwt, async (request, response) => {
   // search project
-  const repoProject = await Project.findOne({ $and: [{ code: request.params.projectCode }, { $or: [{ author: request.user._id }, { collaborators: request.user._id }] }] });
+  const repoProject = await Project.findOne({ $and: [{ code: request.params.projectCode }, { $or: [{ author: request.user.id }, { collaborators: request.user.id }] }] });
   if (!repoProject) return resNotFound(`project '${request.params.projectCode}'`, response);
 
   // get current user
-  const tbuRepoUser = await User.findOne({ _id: request.user._id });
+  const tbuRepoUser = await User.findOne({ _id: request.user.id });
   if (!tbuRepoUser) return resNotFound('user', response);
 
   // get current time
@@ -39,7 +39,7 @@ rtProject.get('/:projectCode', rtftJwt, async (request, response) => {
       {
         code: repoProject.code,
         name: repoProject.name,
-        is_owning: repoProject.author.toString() === request.user._id,
+        is_owning: repoProject.author.toString() === request.user.id,
       },
       response
     );
@@ -59,7 +59,7 @@ rtProject.post('/', rtftJwt, async (request, response) => {
   if (repoProjectCount) return resIsExist(`project ${request.body.code}`, response);
 
   // make sure author is available
-  const tbuRepoUserAuthor = await User.findOne({ _id: request.user._id });
+  const tbuRepoUserAuthor = await User.findOne({ _id: request.user.id });
   if (!tbuRepoUserAuthor) return resNotFound('author', response);
 
   // make sure collaborating users is available
@@ -72,7 +72,7 @@ rtProject.post('/', rtftJwt, async (request, response) => {
     code: request.body.code,
     description: request.body.description,
     // link to user
-    author: request.user._id,
+    author: request.user.id,
     // link to users
     collaborators: request.body.collaborators,
   });
@@ -138,7 +138,7 @@ rtProject.post('/', rtftJwt, async (request, response) => {
 // get one for edit
 rtProject.get('/edit/:projectCode', rtftJwt, async (request, response) => {
   // search project
-  const repoProject = await Project.findOne({ $and: [{ code: request.params.projectCode }, { author: request.user._id }] }).select('-_id code name description collaborators');
+  const repoProject = await Project.findOne({ $and: [{ code: request.params.projectCode }, { author: request.user.id }] }).select('-_id code name description collaborators');
   if (!repoProject) return resNotFound(`project '${request.params.projectCode}'`, response);
 
   return resBase(repoProject, response);
@@ -157,11 +157,11 @@ rtProject.put('/:projectCode', rtftJwt, async (request, response) => {
   }
 
   // search for project
-  const tbuRepoProject = await Project.findOne({ $and: [{ code: request.params.projectCode }, { author: request.user._id }] });
+  const tbuRepoProject = await Project.findOne({ $and: [{ code: request.params.projectCode }, { author: request.user.id }] });
   if (!tbuRepoProject) return resNotFound(`project ${request.params.projectCode}`, response);
 
   // make sure author is available
-  const repoUserAuthor = await User.findOne({ _id: request.user._id });
+  const repoUserAuthor = await User.findOne({ _id: request.user.id });
   if (!repoUserAuthor) return resNotFound('author', response);
 
   // get new collaborators
@@ -233,11 +233,14 @@ rtProject.get('/activities/:projectCode', rtftJwt, async (request, response) => 
 // get collaborators
 rtProject.get('/collaborators/:projectCode', rtftJwt, async (request, response) => {
   // search project
-  const repoProject = await Project.findOne({ code: request.params.projectCode }).select('-_id collaborators').populate('collaborators', '-_id name');
+  const repoProject = await Project.findOne({ code: request.params.projectCode }).select('-_id collaborators').populate('collaborators', '-_id name').populate('author', '-_id name');
   if (!repoProject) return resNotFound(`project ${request.params.projectCode}`, response);
 
   // get collaborator names
   const collaborators = repoProject.collaborators.map((collaborator) => collaborator.name);
+
+  // join with author as fixed collaborator
+  collaborators.push(repoProject.author.name);
 
   return resBase(collaborators, response);
 });

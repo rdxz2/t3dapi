@@ -99,13 +99,13 @@ io.on('connection', (client) => {
   client.on('leave', strmProjectHandler.handleLeave);
 
   // to do created
-  // client.on('todo_created', handlers.handleCreateToDo);
+  client.on('todo_creating', strmProjectHandler.handleToDoCreating);
 
   // START -- PREDEFINED LISTENERS
 
   // client disonnected from this server
   client.on('disconnect', (reason) => {
-    console.log(`client ${client.id} disconnected with reason '${reason}'`);
+    console.warn(`client ${client.id} disconnected with reason '${reason}'`);
 
     strmProjectHandler.handleDisconnect();
   });

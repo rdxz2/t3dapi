@@ -45,11 +45,11 @@ rtAuthentication.post('/register', async (request, response) => {
     const tbiRepoUserSaved = await tbiRepoUser.save();
 
     // generate jwt
-    const jwt = generateJwt({ _id: tbiRepoUserSaved._id, name: tbiRepoUserSaved.name });
+    const jwt = generateJwt({ id: tbiRepoUserSaved._id, name: tbiRepoUserSaved.name });
 
     return resBase(
       {
-        _id: tbiRepoUserSaved._id,
+        id: tbiRepoUserSaved._id,
         username: tbiRepoUserSaved.username,
         name: tbiRepoUserSaved.name,
         token: jwt,
@@ -79,7 +79,7 @@ rtAuthentication.post('/login', async (request, response) => {
   const refreshToken = randtoken.generate(16);
 
   // generate jwt
-  const jwt = generateJwt({ _id: repoUser._id, name: repoUser.name });
+  const jwt = generateJwt({ id: repoUser._id, name: repoUser.name });
 
   // make user refresh token
   const tbiRepoUserRefreshToken = new UserRefreshToken({
@@ -111,7 +111,7 @@ rtAuthentication.post('/login', async (request, response) => {
 // get refresh token
 rtAuthentication.post('/refresh', rtFtJwtRefresh, async (request, response) => {
   // search for user
-  const repoUser = await User.findOne({ _id: request.user._id, refresh_token: request.user.refreshToken });
+  const repoUser = await User.findOne({ _id: request.user.id, refresh_token: request.user.refreshToken });
   if (!repoUser) return resNotFound('user', response);
 
   // search user refresh token
@@ -124,7 +124,7 @@ rtAuthentication.post('/refresh', rtFtJwtRefresh, async (request, response) => {
   // if (refreshTokenExpiredDate.isBefore(now)) return resUnauthorized(response);
 
   // generate new jwt
-  const jwt = generateJwt({ _id: repoUser._id, name: repoUser.name });
+  const jwt = generateJwt({ id: repoUser._id, name: repoUser.name });
 
   // update db model: user refresh token
   // tbuRepoUserRefreshToken.refresh_token = refreshToken;
@@ -149,12 +149,12 @@ rtAuthentication.post('/refresh', rtFtJwtRefresh, async (request, response) => {
 // log out
 rtAuthentication.get('/logout', rtFtJwt, async (request, response) => {
   // search for user
-  const repoUser = await User.findOne({ _id: request.user._id });
+  const repoUser = await User.findOne({ _id: request.user.id });
   if (!repoUser) return resNotFound('user', response);
 
   try {
     // delete existing user's refresh tokens
-    await UserRefreshToken.deleteMany({ user: request.user._id });
+    await UserRefreshToken.deleteMany({ user: request.user.id });
 
     return resBase(
       {

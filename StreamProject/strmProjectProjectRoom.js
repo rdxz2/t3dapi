@@ -7,7 +7,7 @@ class StrmProjectProjectRoom {
     this.clients = new Map();
   }
 
-  // START -- CLIENT MANAGEMENT
+  // START -- ROOM CLIENT MANAGEMENT
 
   // add subscribing client
   addClient(client, name) {
@@ -32,23 +32,35 @@ class StrmProjectProjectRoom {
     return removedClient;
   }
 
-  // get all currently online clients
+  // get all currently online clients (name only)
   getOnlineClients() {
     return Array.from(this.clients.values()).map((client) => client.user.name);
   }
 
-  // END -- CLIENT MANAGEMENT
+  // END -- ROOM CLIENT MANAGEMENT
 
   // START -- TO DO MANAGEMENT
 
   // a client has joined this room
-  broadcastJoined(name) {
-    this.clients.forEach((client) => client.client.emit('joined', name));
+  broadcastJoined(sender, name) {
+    this._broadcastToAllClients(sender, 'joined', name);
   }
 
   // a client is leaving this room
-  broadcastLeaved(name) {
-    this.clients.forEach((client) => client.client.emit('leaved', name));
+  broadcastLeaved(sender, name) {
+    this._broadcastToAllClients(sender, 'leaved', name);
+  }
+
+  // to do created
+  broadcastToDoCreated(sender, toDo) {
+    this._broadcastToAllClients(sender, 'todo_created', toDo);
+  }
+
+  // broadcast something to all client in this room
+  _broadcastToAllClients(sender, emitName, data) {
+    Array.from(this.clients.entries())
+      .filter(([id, client]) => id !== sender.id)
+      .forEach(([id, client]) => client.client.emit(emitName, data));
   }
 
   // END -- TO DO MANAGEMENT

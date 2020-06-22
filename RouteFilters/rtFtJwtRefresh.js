@@ -2,7 +2,7 @@ import jsonwebtoken from 'jsonwebtoken';
 import moment from 'moment';
 import { resUnauthorized } from '../Responses/resBase';
 
-const rtFtJwt = (request, response, next) => {
+const rtFtJwtRefresh = (request, response, next) => {
   // get token from header
   const authorizationHeader = request.header('Authorization');
   if (!authorizationHeader) return resUnauthorized(response);
@@ -19,7 +19,10 @@ const rtFtJwt = (request, response, next) => {
     const now = moment();
 
     // make sure jwt is already expired
-    if (error || jwtExpiredDate.isAfter(now)) return resUnauthorized(response);
+    if (error || jwtExpiredDate.isAfter(now)) {
+      console.warn('unauthorized beace jwt is not expired', jwtExpiredDate.valueOf(), now.valueOf());
+      return resUnauthorized(response);
+    }
 
     // set user information
     request.user = userInformation;
@@ -28,4 +31,4 @@ const rtFtJwt = (request, response, next) => {
   });
 };
 
-export default rtFtJwt;
+export default rtFtJwtRefresh;

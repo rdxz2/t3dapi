@@ -9,11 +9,12 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
       selectedProjectRoom.addClient(client, data.name);
 
       // broadcast if this client is joining the server
-      selectedProjectRoom.broadcastJoined(data.name);
+      selectedProjectRoom.broadcastJoined(client, data.name);
 
-      // get currently joined clients
+      // get currently online clients
       const currentlyOnlineClients = selectedProjectRoom.getOnlineClients();
 
+      // send currently online clients
       callback(null, currentlyOnlineClients);
     } catch (error) {
       callback(error);
@@ -30,16 +31,24 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
       const removedClients = projectRoomManager.removeClient(client);
 
       // broadcast if this client is leaving the selected room
-      selectedProjectRoom.broadcastLeaved(removedClients[0].removedClient.user.name);
-
-      callback(null, removedClients);
+      selectedProjectRoom.broadcastLeaved(client, removedClients[0].removedClient.user.name);
     } catch (error) {
       callback(error);
     }
   }
 
   // client creating project
-  async function handleCreateToDo({ projectCode, toDoDescription } = {}, callback) {}
+  async function handleToDoCreating(toDo = { projectCode: '', description: '', priority: 0 }, callback) {
+    try {
+      // search project room
+      const selectedProjectRoom = await projectRoomManager.getProjectRoomByCode(toDo.projectCode);
+
+      // broadcast newly created to do
+      selectedProjectRoom.broadcastToDoCreated(client, toDo);
+    } catch (error) {
+      callback(error);
+    }
+  }
 
   // client marking to do as completed
 
@@ -53,12 +62,16 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
     const removedClients = projectRoomManager.removeClient(client) || [];
     if (!removedClients.length) return;
 
-    // broadcast each room for the leaving client
-    removedClients.forEach((removedClient) => removedClient.projectRoom.broadcastLeaved(removedClient.removedClient.user.name));
+    try {
+      // broadcast each room for the leaving client
+      removedClients.forEach((removedClient) => (removedClient.removedClient && removedClient.projectRoom ? removedClient.projectRoom.broadcastLeaved(client, removedClient.removedClient.user.name) : {}));
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   // return above functions
-  return { handleJoin, handleLeave, handleCreateToDo, handleDisconnect };
+  return { handleJoin, handleLeave, handleToDoCreating, handleDisconnect };
 };
 
 export default makeStrmProjectHandler;

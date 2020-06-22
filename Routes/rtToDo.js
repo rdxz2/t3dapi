@@ -20,7 +20,16 @@ rtToDo.get('/:projectCode', rtFtJwt, async (request, response) => {
     .sort([['create_date', -1]])
     .select('description is_completed is_important priority');
 
-  return resBase(repoToDos, response);
+  // rename _id to id
+  const repoTodosRemapped = repoToDos.map((repoToDo) => ({
+    id: repoToDo._id,
+    description: repoToDo.description,
+    is_completed: repoToDo.is_completed,
+    is_important: repoToDo.is_important,
+    priority: repoToDo.priority,
+  }));
+
+  return resBase(repoTodosRemapped, response);
 });
 
 // detail
@@ -31,7 +40,7 @@ rtToDo.get('/detail/:id', rtFtJwt, async (request, response) => {
 
   return resBase(
     {
-      _id: repoToDo._id,
+      id: repoToDo._id,
       creatorId: repoToDo.creator._id,
       creatorName: repoToDo.creator.name,
       description: repoToDo.description,
@@ -163,18 +172,19 @@ rtToDo.post('/:projectCode', rtFtJwt, async (request, response) => {
   // make to do
   const tbiToDo = new Todo({
     description: request.body.description,
-    creator: request.user._id,
+    creator: request.user.id,
     project: tblRepoProject._id,
   });
 
   try {
     // save to do
-    // const tbiToDoSaved = await tbiToDo.save();
+    const tbiToDoSaved = await tbiToDo.save();
 
     resBase(
       {
-        _id: tbiToDo._id,
-        description: tbiToDo.description,
+        id: tbiToDoSaved._id,
+        description: tbiToDoSaved.description,
+        priority: tbiToDoSaved.priority,
       },
       response
     );

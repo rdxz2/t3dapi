@@ -1,6 +1,6 @@
 {
   "name": "t3dapi",
-  "version": "0.0.3",
+  "version": "0.1.2",
   "description": "to do driven development",
   "main": "start.js",
   "scripts": {

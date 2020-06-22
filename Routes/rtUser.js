@@ -13,7 +13,7 @@ rtUser.get('/profileMinimal', rtFtJwt, async (request, response) => {
   // search user
   const repoUser = await User.findOne({
     // by id
-    _id: request.user._id,
+    _id: request.user.id,
   })
     .populate('department', '-_id name')
     .populate('position', '-_id name')
@@ -33,7 +33,7 @@ rtUser.get('/recentprojects', rtFtJwt, async (request, response) => {
 
   // search user
   const repoUserRecentProjects = await User.aggregate([
-    { $match: { _id: mongoose.Types.ObjectId(request.user._id) } },
+    { $match: { _id: mongoose.Types.ObjectId(request.user.id) } },
     { $unwind: '$projects' },
     { $lookup: { from: 'projects', localField: 'projects.project', foreignField: '_id', as: 'projects.fk_project' } },
     { $unwind: '$projects.fk_project' },
@@ -69,7 +69,7 @@ rtUser.get('/recentprojects', rtFtJwt, async (request, response) => {
     author: project.fk_project.fk_author.name,
     description: project.fk_project.description,
     last_accessed: project.last_accessed,
-    is_owning: project.fk_project.author.toString() === request.user._id,
+    is_owning: project.fk_project.author.toString() === request.user.id,
   }));
 
   return resBase(recentProjects, response);
