@@ -66,7 +66,7 @@ app.all('*', (request, response) => resNotFound(`route [${request.method}] ${req
 // END -- configure middleware
 
 // get port from environment variables
-const port = process.env.PORT_T3DAPI || 3000;
+const port = process.env.PORT || 5000;
 
 // start server
 app.listen(port, () => {

@@ -1,15 +1,16 @@
-import { Router, response } from 'express';
+import { Router } from 'express';
+import moment from 'moment';
+import randtoken from 'rand-token';
 
 import HTTPSTATUS from '../Constants/HTTPSTATUS';
+import SECURITY from '../Constants/SECURITY';
 import User from '../Models/mdlUser';
-import { resBase, resException, resIsExist, resValidationError, resNotFound, resUnauthorized } from '../Responses/resBase';
-import rtFtJwt from '../RouteFilters/rtFtJwt';
-import { generateJwt, hashPassword, matchPassword } from '../Utilities/utlSecurity';
-import randtoken from 'rand-token';
-import { vldtLogin, vldtRegister } from '../Validations/vldtAuthentication';
-import rtFtJwtRefresh from '../RouteFilters/rtFtJwtRefresh';
 import UserRefreshToken from '../Models/mdlUserRefreshToken';
-import moment from 'moment';
+import { resBase, resException, resIsExist, resNotFound, resUnauthorized, resValidationError } from '../Responses/resBase';
+import rtFtJwt from '../RouteFilters/rtFtJwt';
+import rtFtJwtRefresh from '../RouteFilters/rtFtJwtRefresh';
+import { generateJwt, hashPassword, matchPassword } from '../Utilities/utlSecurity';
+import { vldtLogin, vldtRegister } from '../Validations/vldtAuthentication';
 
 const rtAuthentication = Router();
 
@@ -83,7 +84,7 @@ rtAuthentication.post('/login', async (request, response) => {
   // make user refresh token
   const tbiRepoUserRefreshToken = new UserRefreshToken({
     refresh_token: refreshToken,
-    expired_date: moment().add(12, 'hours'),
+    expired_date: moment().add(SECURITY.REFRESHTOKEN_AGE, 'seconds'),
     user: repoUser._id,
   });
 
@@ -117,29 +118,26 @@ rtAuthentication.post('/refresh', rtFtJwtRefresh, async (request, response) => {
   const tbuRepoUserRefreshToken = await UserRefreshToken.findOne({ user: repoUser._id, refresh_token: request.body.refreshToken });
   if (!tbuRepoUserRefreshToken) return resUnauthorized(response);
 
-  // make sure refresh token is not expired
-  const refreshTokenExpiredDate = moment(tbuRepoUserRefreshToken.expired_date);
-  const now = moment();
-  if (refreshTokenExpiredDate.isBefore(now)) return resUnauthorized(response);
-
-  // generate new refresh token
-  const refreshToken = randtoken.generate(16);
+  // // make sure refresh token is not expired
+  // const refreshTokenExpiredDate = moment(tbuRepoUserRefreshToken.expired_date);
+  // const now = moment();
+  // if (refreshTokenExpiredDate.isBefore(now)) return resUnauthorized(response);
 
   // generate new jwt
   const jwt = generateJwt({ _id: repoUser._id });
 
   // update db model: user refresh token
-  tbuRepoUserRefreshToken.refresh_token = refreshToken;
-  tbuRepoUserRefreshToken.expired_date = moment().add(12, 'hour');
+  // tbuRepoUserRefreshToken.refresh_token = refreshToken;
+  // tbuRepoUserRefreshToken.expired_date = moment().add(SECURITY.REFRESHTOKEN_AGE, 'seconds');
 
   try {
     // save user refresh token
-    await tbuRepoUserRefreshToken.save();
+    // await tbuRepoUserRefreshToken.save();
 
     return resBase(
       {
         token: jwt,
-        refreshToken,
+        // refreshToken,
       },
       response
     );

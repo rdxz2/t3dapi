@@ -1,4 +1,4 @@
-import { Router, request } from 'express';
+import { Router } from 'express';
 import moment from 'moment';
 
 import Project from '../Models/mdlProject';
@@ -10,6 +10,9 @@ import { vldtProjectCreate, vldtProjectEdit } from '../Validations/vldtProject';
 const rtProject = Router();
 
 // get all
+rtProject.get('/', rtftJwt, async (request, response) => {
+  return resBase([], response);
+});
 
 // get one
 rtProject.get('/:projectCode', rtftJwt, async (request, response) => {

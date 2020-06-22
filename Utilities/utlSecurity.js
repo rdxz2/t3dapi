@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jsonwebtoken from 'jsonwebtoken';
+import SECURITY from '../Constants/SECURITY';
 
 // hash password
 export const hashPassword = async (plainPassword) => {
@@ -19,10 +20,9 @@ export const generateJwt = (data) =>
     // jwt secret
     process.env.JWT_SECRET,
     // token configuration
-    // with expiration date [seconds] * [minutes] * [hours] from now
     {
       audience: process.env.JWT_AUD,
       issuer: process.env.JWT_ISS,
-      expiresIn: 2 * 1 * 1,
+      expiresIn: SECURITY.JWT_AGE,
     }
   );

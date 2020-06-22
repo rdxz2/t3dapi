@@ -26,11 +26,6 @@ rtUser.get('/profileMinimal', rtFtJwt, async (request, response) => {
   return resBase(repoUser, response);
 });
 
-// notifications
-rtUser.get('/notifications', rtFtJwt, (request, response) => {
-  return resBase('not implemented', response);
-});
-
 // recent projects
 rtUser.get('/recentprojects', rtFtJwt, async (request, response) => {
   // set recent date to last month
@@ -46,7 +41,23 @@ rtUser.get('/recentprojects', rtFtJwt, async (request, response) => {
     { $unwind: '$projects.fk_project.fk_author' },
     { $sort: { 'projects.last_accessed': -1 } },
     { $group: { _id: '$_id', projects: { $push: '$projects' } } },
-    { $project: { _id: 0, projects: { $filter: { input: '$projects', as: 'project', cond: { $gt: ['$$project.last_accessed', minRecentDate] } } } } },
+    {
+      $project: {
+        _id: 0,
+        projects: {
+          $filter: {
+            input: '$projects',
+            as: 'project',
+            cond: {
+              $and: [
+                { $gt: ['$$project.last_accessed', minRecentDate] },
+                { $or: [{ $regexMatch: { input: '$$project.fk_project.name', regex: request.query.search || '', options: 'i' } }, { $regexMatch: { input: '$$project.fk_project.code', regex: request.query.search || '', options: 'i' } }] },
+              ],
+            },
+          },
+        },
+      },
+    },
     { $project: { projects: { last_accessed: 1, fk_project: { name: 1, code: 1, description: 1, author: 1, fk_author: { name: 1 } } } } },
   ]);
   if (!repoUserRecentProjects.length) return resBase([], response);
@@ -64,13 +75,18 @@ rtUser.get('/recentprojects', rtFtJwt, async (request, response) => {
   return resBase(recentProjects, response);
 });
 
+// recent activities
+rtUser.get('/recentactivities', rtFtJwt, (request, response) => {
+  return resBase([], response);
+});
+
 // calendar schedules
 rtUser.get('/schedule', rtFtJwt, (request, response) => {
   return resBase([], response);
 });
 
-// recent activities
-rtUser.get('/recentactivities', rtFtJwt, (request, response) => {
+// notifications
+rtUser.get('/notifications', rtFtJwt, (request, response) => {
   return resBase([], response);
 });
 

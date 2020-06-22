@@ -28,6 +28,8 @@
     "no-multi-spaces": "off",
     "comma-spacing": "off",
     "space-before-blocks": "off",
-    "handle-callback-err": "warn"
+    "handle-callback-err": "warn",
+    "space-before-function-paren": "off",
+    "arrow-spacing": "off"
   }
 }
