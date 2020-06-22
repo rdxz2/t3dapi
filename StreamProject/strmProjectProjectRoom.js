@@ -21,15 +21,15 @@ class StrmProjectProjectRoom {
   // remove leaving client
   removeClient(client) {
     // get deleted client
-    const deletedClient = this.clients.get(client.id);
+    const removedClient = this.clients.get(client.id);
 
     // if client not found in this room then return empty
-    if (!deletedClient) return null;
+    if (!removedClient) return null;
 
     // delete the client
     this.clients.delete(client.id);
 
-    return { projectRoom: this, deletedClient };
+    return removedClient;
   }
 
   // get all currently online clients

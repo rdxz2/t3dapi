@@ -30,7 +30,7 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
       const removedClients = projectRoomManager.removeClient(client);
 
       // broadcast if this client is leaving the selected room
-      selectedProjectRoom.broadcastLeaved(removedClients[0].deletedClient.user.name);
+      selectedProjectRoom.broadcastLeaved(removedClients[0].removedClient.user.name);
 
       callback(null, removedClients);
     } catch (error) {
@@ -50,10 +50,11 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
   // client disconnected from project room
   function handleDisconnect() {
     // unregister this client from all project rooms
-    const removedClients = projectRoomManager.removeClient(client);
+    const removedClients = projectRoomManager.removeClient(client) || [];
+    if (!removedClients.length) return;
 
     // broadcast each room for the leaving client
-    removedClients.forEach((removedClient) => removedClient.projectRoom.broadcastLeaved(removedClient.deletedClient.user.name));
+    removedClients.forEach((removedClient) => removedClient.projectRoom.broadcastLeaved(removedClient.removedClient.user.name));
   }
 
   // return above functions

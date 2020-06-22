@@ -23,7 +23,7 @@ class StrmProjectProjectRoomManager {
       if (projectRoom.clients.size <= 0) this.projectRooms.delete(projectRoom.name);
 
       // return the removed client
-      return removedClient;
+      return { projectRoom, removedClient };
     });
   }
 
