@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, response } from 'express';
 import moment from 'moment';
 
 import Project from '../Models/mdlProject';
@@ -228,6 +228,18 @@ rtProject.put('/:projectCode', rtftJwt, async (request, response) => {
 // get activities
 rtProject.get('/activities/:projectCode', rtftJwt, async (request, response) => {
   return resBase([], response);
+});
+
+// get collaborators
+rtProject.get('/collaborators/:projectCode', rtftJwt, async (request, response) => {
+  // search project
+  const repoProject = await Project.findOne({ code: request.params.projectCode }).select('-_id collaborators').populate('collaborators', '-_id name');
+  if (!repoProject) return resNotFound(`project ${request.params.projectCode}`, response);
+
+  // get collaborator names
+  const collaborators = repoProject.collaborators.map((collaborator) => collaborator.name);
+
+  return resBase(collaborators, response);
 });
 
 export default rtProject;

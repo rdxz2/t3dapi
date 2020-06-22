@@ -45,7 +45,7 @@ rtAuthentication.post('/register', async (request, response) => {
     const tbiRepoUserSaved = await tbiRepoUser.save();
 
     // generate jwt
-    const jwt = generateJwt({ _id: tbiRepoUserSaved._id });
+    const jwt = generateJwt({ _id: tbiRepoUserSaved._id, name: tbiRepoUserSaved.name });
 
     return resBase(
       {
@@ -79,7 +79,7 @@ rtAuthentication.post('/login', async (request, response) => {
   const refreshToken = randtoken.generate(16);
 
   // generate jwt
-  const jwt = generateJwt({ _id: repoUser._id });
+  const jwt = generateJwt({ _id: repoUser._id, name: repoUser.name });
 
   // make user refresh token
   const tbiRepoUserRefreshToken = new UserRefreshToken({
@@ -124,7 +124,7 @@ rtAuthentication.post('/refresh', rtFtJwtRefresh, async (request, response) => {
   // if (refreshTokenExpiredDate.isBefore(now)) return resUnauthorized(response);
 
   // generate new jwt
-  const jwt = generateJwt({ _id: repoUser._id });
+  const jwt = generateJwt({ _id: repoUser._id, name: repoUser.name });
 
   // update db model: user refresh token
   // tbuRepoUserRefreshToken.refresh_token = refreshToken;

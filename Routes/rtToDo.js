@@ -169,12 +169,12 @@ rtToDo.post('/:projectCode', rtFtJwt, async (request, response) => {
 
   try {
     // save to do
-    const tbiToDoSaved = await tbiToDo.save();
+    // const tbiToDoSaved = await tbiToDo.save();
 
     resBase(
       {
-        _id: tbiToDoSaved._id,
-        description: tbiToDoSaved.description,
+        _id: tbiToDo._id,
+        description: tbiToDo.description,
       },
       response
     );
