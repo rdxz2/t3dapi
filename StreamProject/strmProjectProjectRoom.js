@@ -9,13 +9,10 @@ class StrmProjectProjectRoom {
 
   // START -- ROOM CLIENT MANAGEMENT
 
-  // add subscribing client
-  addClient(client, name) {
-    // user model
-    const user = { name };
-
+  // add subscribing client (with user id & user name (not username))
+  addClient(client, id, name) {
     // insert user as subscribing client
-    this.clients.set(client.id, { client, user });
+    this.clients.set(client.id, { client, id, name });
   }
 
   // remove leaving client
@@ -34,7 +31,7 @@ class StrmProjectProjectRoom {
 
   // get all currently online clients (name only)
   getOnlineClients() {
-    return Array.from(this.clients.values()).map((client) => client.user.name);
+    return Array.from(this.clients.values()).map((client) => ({ id: client.id, name: client.name }));
   }
 
   // END -- ROOM CLIENT MANAGEMENT
@@ -42,13 +39,13 @@ class StrmProjectProjectRoom {
   // START -- TO DO MANAGEMENT
 
   // a client has joined this room
-  broadcastJoined(sender, name) {
-    this._broadcastToAllClients(sender, 'joined', name);
+  broadcastJoined(sender, id, name) {
+    this._broadcastToAllClients(sender, 'joined', { id, name });
   }
 
   // a client is leaving this room
-  broadcastLeaved(sender, name) {
-    this._broadcastToAllClients(sender, 'leaved', name);
+  broadcastLeaved(sender, id, name) {
+    this._broadcastToAllClients(sender, 'leaved', { id, name });
   }
 
   // to do created

@@ -6,10 +6,10 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
       const selectedProjectRoom = await projectRoomManager.getProjectRoomByCode(data.projectCode, true);
 
       // register this client to the project room
-      selectedProjectRoom.addClient(client, data.name);
+      selectedProjectRoom.addClient(client, data.id, data.name);
 
       // broadcast if this client is joining the server
-      selectedProjectRoom.broadcastJoined(client, data.name);
+      selectedProjectRoom.broadcastJoined(client, data.id, data.name);
 
       // get currently online clients
       const currentlyOnlineClients = selectedProjectRoom.getOnlineClients();
@@ -29,9 +29,10 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
 
       // uregister this client from all project rooms
       const removedClients = projectRoomManager.removeClient(client);
+      const removedClient = removedClients[0].removedClient;
 
       // broadcast if this client is leaving the selected room
-      selectedProjectRoom.broadcastLeaved(client, removedClients[0].removedClient.user.name);
+      selectedProjectRoom.broadcastLeaved(client, removedClient.user.id, removedClient.user.name);
     } catch (error) {
       callback(error);
     }
@@ -64,7 +65,7 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
 
     try {
       // broadcast each room for the leaving client
-      removedClients.forEach((removedClient) => (removedClient.removedClient && removedClient.projectRoom ? removedClient.projectRoom.broadcastLeaved(client, removedClient.removedClient.user.name) : {}));
+      removedClients.forEach((removedClient) => (removedClient.removedClient && removedClient.projectRoom ? removedClient.projectRoom.broadcastLeaved(client, removedClient.removedClient.user.id, removedClient.removedClient.user.name) : {}));
     } catch (error) {
       console.error(error);
     }

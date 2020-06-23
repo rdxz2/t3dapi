@@ -9,11 +9,11 @@ import rtFtJwt from '../RouteFilters/rtFtJwt';
 const rtUser = Router();
 
 // user's minimal information
-rtUser.get('/profileMinimal', rtFtJwt, async (request, response) => {
+rtUser.get('/profileMinimal/:id', rtFtJwt, async (request, response) => {
   // search user
   const repoUser = await User.findOne({
     // by id
-    _id: request.user.id,
+    _id: request.params.id,
   })
     .populate('department', '-_id name')
     .populate('position', '-_id name')

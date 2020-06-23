@@ -1,4 +1,4 @@
-import { Router, response } from 'express';
+import { Router } from 'express';
 import moment from 'moment';
 
 import Project from '../Models/mdlProject';
@@ -233,14 +233,14 @@ rtProject.get('/activities/:projectCode', rtftJwt, async (request, response) => 
 // get collaborators
 rtProject.get('/collaborators/:projectCode', rtftJwt, async (request, response) => {
   // search project
-  const repoProject = await Project.findOne({ code: request.params.projectCode }).select('-_id collaborators').populate('collaborators', '-_id name').populate('author', '-_id name');
+  const repoProject = await Project.findOne({ code: request.params.projectCode }).select('-_id collaborators').populate('collaborators', 'name').populate('author', 'name');
   if (!repoProject) return resNotFound(`project ${request.params.projectCode}`, response);
 
   // get collaborator names
-  const collaborators = repoProject.collaborators.map((collaborator) => collaborator.name);
+  const collaborators = repoProject.collaborators.map((collaborator) => ({ id: collaborator._id, name: collaborator.name }));
 
   // join with author as fixed collaborator
-  collaborators.push(repoProject.author.name);
+  collaborators.push({ id: repoProject.author._id, name: repoProject.author.name });
 
   return resBase(collaborators, response);
 });
