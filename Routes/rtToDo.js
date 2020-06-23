@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { resBase, resValidationError, resException, resNotFound } from '../Responses/resBase';
 import rtFtJwt from '../RouteFilters/rtFtJwt';
-import { vldtToDoCreate, vldtToDoChangeTags } from '../Validations/vldtToDo';
+import { vldtToDoCreate, vldtToDoEditTags, vldtToDoEditDescription } from '../Validations/vldtToDo';
 import Todo from '../Models/mdlTodo';
 import Project from '../Models/mdlProject';
 import moment from 'moment';
@@ -31,6 +31,42 @@ rtToDo.get('/:projectCode', rtFtJwt, async (request, response) => {
 
   return resBase(repoTodosRemapped, response);
 });
+
+// create
+rtToDo.post('/:projectCode', rtFtJwt, async (request, response) => {
+  // validate model
+  const { error: errorValidation } = vldtToDoCreate(request.body);
+  if (errorValidation) return resValidationError(errorValidation, response);
+
+  // make sure project is exist
+  const tblRepoProject = await Project.findOne({ code: request.params.projectCode, is_active: true }).select('_id');
+  if (!tblRepoProject) return resNotFound(`project ${request.params.projectCode}`, response);
+
+  // make to do
+  const tbiToDo = new Todo({
+    description: request.body.description,
+    creator: request.user.id,
+    project: tblRepoProject._id,
+  });
+
+  try {
+    // save to do
+    const tbiToDoSaved = await tbiToDo.save();
+
+    resBase(
+      {
+        id: tbiToDoSaved._id,
+        description: tbiToDoSaved.description,
+        priority: tbiToDoSaved.priority,
+      },
+      response
+    );
+  } catch (error) {
+    resException(error, response);
+  }
+});
+
+// edit
 
 // detail
 rtToDo.get('/detail/:id', rtFtJwt, async (request, response) => {
@@ -105,7 +141,7 @@ rtToDo.get('/important/:id', rtFtJwt, async (request, response) => {
 // change tags
 rtToDo.post('/tags/:id', rtFtJwt, async (request, response) => {
   // validate model
-  const { error: errorValidation } = vldtToDoChangeTags(request.body);
+  const { error: errorValidation } = vldtToDoEditTags(request.body);
   if (errorValidation) return resValidationError(errorValidation, response);
 
   // search to do
@@ -159,40 +195,31 @@ rtToDo.get('/priority/:id', rtFtJwt, async (request, response) => {
   }
 });
 
-// create
-rtToDo.post('/:projectCode', rtFtJwt, async (request, response) => {
+// change description
+rtToDo.post('/description/:id', rtFtJwt, async (request, response) => {
   // validate model
-  const { error: errorValidation } = vldtToDoCreate(request.body);
+  const { error: errorValidation } = vldtToDoEditDescription(request.body);
   if (errorValidation) return resValidationError(errorValidation, response);
 
-  // make sure project is exist
-  const tblRepoProject = await Project.findOne({ code: request.params.projectCode, is_active: true }).select('_id');
-  if (!tblRepoProject) return resNotFound(`project ${request.params.projectCode}`, response);
+  // search to do
+  const tbuRepoToDo = await Todo.findOne({ _id: request.params.id }).select('description');
+  if (!tbuRepoToDo) return resNotFound('to do', response);
 
-  // make to do
-  const tbiToDo = new Todo({
-    description: request.body.description,
-    creator: request.user.id,
-    project: tblRepoProject._id,
-  });
+  // get current time
+  const now = moment();
+
+  // update db model: to do
+  tbuRepoToDo.description = request.body.description;
+  tbuRepoToDo.update_date = now;
 
   try {
     // save to do
-    const tbiToDoSaved = await tbiToDo.save();
+    const tbuRepoToDoSaved = await tbuRepoToDo.save();
 
-    resBase(
-      {
-        id: tbiToDoSaved._id,
-        description: tbiToDoSaved.description,
-        priority: tbiToDoSaved.priority,
-      },
-      response
-    );
+    return resBase({ description: tbuRepoToDoSaved.description }, response);
   } catch (error) {
-    resException(error, response);
+    return resException(error, response);
   }
 });
-
-// edit
 
 export default rtToDo;

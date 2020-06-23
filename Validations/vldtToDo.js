@@ -6,8 +6,14 @@ export const vldtToDoCreate = (data) =>
     description: Joi.string().max(1000).required(),
   }).validate(data);
 
-// change tags
-export const vldtToDoChangeTags = (data) =>
+// edit tags
+export const vldtToDoEditTags = (data) =>
   Joi.object({
     tags: Joi.array().items(Joi.string()).optional(),
+  }).validate(data);
+
+// edit description
+export const vldtToDoEditDescription = (data) =>
+  Joi.object({
+    description: Joi.string().max(1000).required(),
   }).validate(data);
