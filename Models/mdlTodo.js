@@ -1,7 +1,8 @@
 import { model, Schema } from 'mongoose';
 import TODO from '../Constants/TODO';
+import { convertObjectValueToArray } from '../Utilities/utlType';
 
-const scmToDo = new Schema({
+const scmTodo = new Schema({
   description: {
     type: String,
     required: true,
@@ -10,7 +11,7 @@ const scmToDo = new Schema({
   tags: [
     {
       type: String,
-      max: 20,
+      max: 30,
     },
   ],
   is_completed: {
@@ -26,8 +27,8 @@ const scmToDo = new Schema({
   priority: {
     type: Number,
     required: true,
-    default: TODO.PRIORITIES.find((priority) => priority === 4),
-    enum: TODO.PRIORITIES,
+    default: TODO.PRIORITY.NORMAL,
+    enum: convertObjectValueToArray(TODO.PRIORITY),
   },
   create_date: {
     type: Date,
@@ -55,6 +56,6 @@ const scmToDo = new Schema({
   },
 });
 
-const Todo = model('Todo', scmToDo, 'todos');
+const Todo = model('Todo', scmTodo, 'todos');
 
 export default Todo;

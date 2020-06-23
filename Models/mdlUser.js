@@ -45,7 +45,7 @@ const scmUser = new Schema({
   },
   // fk: Project[]
   projects: [
-    Schema({
+    {
       project: {
         type: Schema.Types.ObjectId,
         required: true,
@@ -55,7 +55,7 @@ const scmUser = new Schema({
         type: Date,
         default: Date.now,
       },
-    }),
+    },
   ],
 });
 

@@ -39,24 +39,24 @@ class StrmProjectProjectRoom {
   // START -- TO DO MANAGEMENT
 
   // a client has joined this room
-  broadcastJoined(sender, id, name) {
-    this._broadcastToAllClients(sender, 'joined', { id, name });
+  broadcastJoined(clientSender, id, name) {
+    this._broadcastToAllClients(clientSender, 'joined', { id, name });
   }
 
   // a client is leaving this room
-  broadcastLeaved(sender, id, name) {
-    this._broadcastToAllClients(sender, 'leaved', { id, name });
+  broadcastLeaved(clientSender, id, name) {
+    this._broadcastToAllClients(clientSender, 'leaved', { id, name });
   }
 
   // to do created
-  broadcastToDoCreated(sender, toDo) {
-    this._broadcastToAllClients(sender, 'todo_created', toDo);
+  broadcastTodoCreated(clientSender, todo) {
+    this._broadcastToAllClients(clientSender, 'todo_created', todo);
   }
 
   // broadcast something to all client in this room
-  _broadcastToAllClients(sender, emitName, data) {
+  _broadcastToAllClients(clientSender, emitName, data) {
     Array.from(this.clients.entries())
-      .filter(([id, client]) => id !== sender.id)
+      .filter(([id, client]) => id !== clientSender.id)
       .forEach(([id, client]) => client.client.emit(emitName, data));
   }
 

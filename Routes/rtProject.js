@@ -2,10 +2,13 @@ import { Router } from 'express';
 import moment from 'moment';
 
 import Project from '../Models/mdlProject';
+import ProjectActivity from '../Models/mdlProjectActivitiy';
 import User from '../Models/mdlUser';
-import { resBase, resException, resNotFound, resValidationError, resIsExist } from '../Responses/resBase';
+import { resBase, resException, resNotFound, resValidationError, resIsExist, resSingleValidationError } from '../Responses/resBase';
 import rtftJwt from '../RouteFilters/rtFtJwt';
 import { vldtProjectCreate, vldtProjectEdit } from '../Validations/vldtProject';
+import PROJECT from '../Constants/PROJECT';
+import { toInteger } from 'lodash';
 
 const rtProject = Router();
 
@@ -59,7 +62,7 @@ rtProject.post('/', rtftJwt, async (request, response) => {
   if (repoProjectCount) return resIsExist(`project ${request.body.code}`, response);
 
   // make sure author is available
-  const tbuRepoUserAuthor = await User.findOne({ _id: request.user.id });
+  const tbuRepoUserAuthor = await User.findOne({ _id: request.user.id }).select('name projects');
   if (!tbuRepoUserAuthor) return resNotFound('author', response);
 
   // make sure collaborating users is available
@@ -68,8 +71,8 @@ rtProject.post('/', rtftJwt, async (request, response) => {
 
   // make db model: project
   const tbiRepoProject = new Project({
-    name: request.body.name,
     code: request.body.code,
+    name: request.body.name,
     description: request.body.description,
     // link to user
     author: request.user.id,
@@ -77,45 +80,38 @@ rtProject.post('/', rtftJwt, async (request, response) => {
     collaborators: request.body.collaborators,
   });
 
+  // make db model: project activity
+  const tbiRepoProjectActivity = new ProjectActivity({
+    // link to project
+    project: tbiRepoProject._id,
+    project_action: PROJECT.ACTION.CREATE,
+    project_code: tbiRepoProject.code,
+    project_naem: tbiRepoProject.name,
+    // link to user
+    actor: request.user.id,
+  });
+
+  // update db model: user (author)
+  tbuRepoUserAuthor.projects.push({ project: tbiRepoProject._id });
+
+  // update db model: users (collaborators)
+  tbuRepoUsersCollaborator.forEach(async (tbuRepoUserCollaborator) => {
+    // link to inserted project
+    tbuRepoUserCollaborator.projects.push({ project: tbiRepoProject._id });
+
+    // save user (collaborators)
+    await tbuRepoUserCollaborator.save();
+  });
+
   try {
     // save project
     const tbiRepoProjectSaved = await tbiRepoProject.save();
 
-    // START -- UPDATE MODEL -- V2
-
-    // update db model: user (author)
-    tbuRepoUserAuthor.projects.push({ project: tbiRepoProjectSaved._id });
+    // save project activity
+    await tbiRepoProjectActivity.save();
 
     // save user (author)
-    tbuRepoUserAuthor.save();
-
-    // update db model: users (collaborators)
-    tbuRepoUsersCollaborator.forEach(async (tbuRepoUserCollaborator) => {
-      // link to inserted project
-      tbuRepoUserCollaborator.projects.push({ project: tbiRepoProjectSaved._id });
-
-      // save user (collaborators)
-      await tbuRepoUserCollaborator.save();
-    });
-
-    // END -- UPDATE MODEL -- V2
-
-    // START -- UPDATE MODEL -- V1
-
-    // // update db model: users
-    // await User.updateMany(
-    //   {
-    //     _id: { $in: collaborators },
-    //   },
-    //   {
-    //     // link to inserted project
-    //     $push: {
-    //       projects: {
-    //         project: tbiRepoProjectSaved._id,
-    //       },
-    //     },
-    //   }
-    // );
+    await tbuRepoUserAuthor.save();
 
     // END -- UPDATE MODEL -- V1
 
@@ -227,7 +223,75 @@ rtProject.put('/:projectCode', rtftJwt, async (request, response) => {
 
 // get activities
 rtProject.get('/activities/:projectCode', rtftJwt, async (request, response) => {
-  return resBase([], response);
+  // convert page size
+  const pageSize = toInteger(request.query.pageSize);
+  if (!pageSize) return resSingleValidationError('page size', response);
+
+  // convert current page
+  const currentPage = toInteger(request.query.currentPage);
+  if (!currentPage) return resSingleValidationError('page number', response);
+
+  // search project
+  const repoProjects = await Project.aggregate([
+    // selected project code
+    { $match: { code: request.params.projectCode } },
+    // join: projects - project_activities
+    { $lookup: { from: 'project_activities', localField: '_id', foreignField: 'project', as: 'project_activities' } },
+    // join: projects - todos
+    { $lookup: { from: 'todos', localField: '_id', foreignField: 'project', as: 'todos' } },
+    // join: todos - project_activities
+    { $lookup: { from: 'project_activities', localField: 'todos._id', foreignField: 'todo', as: 'todos.todo_activities' } },
+    // explode activities from project (note: this can be moved below the joining process of projects - project_activities at the cost of brevity)
+    { $unwind: { path: '$project_activities', preserveNullAndEmptyArrays: true } },
+    // explode activities from to do
+    { $unwind: { path: '$todos.todo_activities', preserveNullAndEmptyArrays: true } },
+    // group by activities from project and to do by selected project code
+    { $group: { _id: '$code', project_activities: { $push: '$project_activities' }, todo_activities: { $push: '$todos.todo_activities' } } },
+    // combine activities from project and to do
+    { $project: { _id: '$_id', activities: { $setUnion: ['$project_activities', '$todo_activities'] } } },
+    // explode activities to be sorted
+    { $unwind: { path: '$activities', preserveNullAndEmptyArrays: true } },
+    // join: project_activities (from project & to do) - users
+    { $lookup: { from: 'users', localField: 'activities.actor', foreignField: '_id', as: 'activities.actor' } },
+    // explode users
+    { $unwind: { path: '$activities.actor', preserveNullAndEmptyArrays: true } },
+    // sort descending by create_date
+    { $sort: { 'activities.create_date': -1 } },
+    // make a branch pipeline
+    {
+      $facet: {
+        // count all filtered data for max available paging to client
+        allData: [{ $group: { _id: null, count: { $sum: 1 } } }],
+        // make a paginated data
+        paginatedData: [
+          // apply pagination
+          { $skip: pageSize * (currentPage - 1) },
+          { $limit: pageSize },
+          // group the unwinded, sorted, and paged activities
+          { $group: { _id: '$_id', activities: { $push: '$activities' } } },
+        ],
+      },
+    },
+    // explode count on 'allData' so we don't need to acces them as an array because of the group pipeline
+    { $unwind: { path: '$allData', preserveNullAndEmptyArrays: true } },
+    // select
+    {
+      $project: {
+        allData: { count: 1 },
+        paginatedData: {
+          activities: { _id: 1, project_action: 1, project_code: 1, project_name: 1, todo_action: 1, todo_description: 1, todo_completed: 1, todo_important: 1, todo_priority: 1, todo_tag: 1, create_date: 1, actor: { _id: 1, name: 1 } },
+        },
+      },
+    },
+  ]);
+
+  // get first element
+  const repoProject = repoProjects[0];
+
+  // map project activities
+  const projectActivities = repoProject.paginatedData[0] ? repoProject.paginatedData[0].activities.map((projectActivity) => projectActivity) : [];
+
+  return resBase({ projectActivitiesTotalData: repoProject.allData.count || 0, projectActivities }, response);
 });
 
 // get collaborators

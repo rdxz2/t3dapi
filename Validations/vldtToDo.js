@@ -1,19 +1,19 @@
 import Joi from '@hapi/joi';
 
 // create to do
-export const vldtToDoCreate = (data) =>
+export const vldtTodoCreate = (data) =>
   Joi.object({
-    description: Joi.string().max(1000).required(),
+    description: Joi.string().max(100).required(),
   }).validate(data);
 
-// edit tags
-export const vldtToDoEditTags = (data) =>
+// create/delete tags
+export const vldtTodoEditTags = (data) =>
   Joi.object({
-    tags: Joi.array().items(Joi.string()).optional(),
+    tag: Joi.string().max(30).required(),
   }).validate(data);
 
 // edit description
-export const vldtToDoEditDescription = (data) =>
+export const vldtTodoEditDescription = (data) =>
   Joi.object({
-    description: Joi.string().max(1000).required(),
+    description: Joi.string().max(100).required(),
   }).validate(data);

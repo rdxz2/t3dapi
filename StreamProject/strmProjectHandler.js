@@ -32,20 +32,20 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
       const removedClient = removedClients[0].removedClient;
 
       // broadcast if this client is leaving the selected room
-      selectedProjectRoom.broadcastLeaved(client, removedClient.user.id, removedClient.user.name);
+      selectedProjectRoom.broadcastLeaved(client, removedClient.id, removedClient.name);
     } catch (error) {
       callback(error);
     }
   }
 
   // client creating project
-  async function handleToDoCreating(toDo = { projectCode: '', description: '', priority: 0 }, callback) {
+  async function handleTodoCreating(todo = { projectCode: '', description: '', priority: 0 }, callback) {
     try {
       // search project room
-      const selectedProjectRoom = await projectRoomManager.getProjectRoomByCode(toDo.projectCode);
+      const selectedProjectRoom = await projectRoomManager.getProjectRoomByCode(todo.projectCode);
 
       // broadcast newly created to do
-      selectedProjectRoom.broadcastToDoCreated(client, toDo);
+      selectedProjectRoom.broadcastTodoCreated(client, todo);
     } catch (error) {
       callback(error);
     }
@@ -65,14 +65,14 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
 
     try {
       // broadcast each room for the leaving client
-      removedClients.forEach((removedClient) => (removedClient.removedClient && removedClient.projectRoom ? removedClient.projectRoom.broadcastLeaved(client, removedClient.removedClient.user.id, removedClient.removedClient.user.name) : {}));
+      removedClients.forEach((removedClient) => (removedClient.removedClient && removedClient.projectRoom ? removedClient.projectRoom.broadcastLeaved(client, removedClient.removedClient.id, removedClient.removedClient.name) : {}));
     } catch (error) {
       console.error(error);
     }
   }
 
   // return above functions
-  return { handleJoin, handleLeave, handleToDoCreating, handleDisconnect };
+  return { handleJoin, handleLeave, handleTodoCreating, handleDisconnect };
 };
 
 export default makeStrmProjectHandler;

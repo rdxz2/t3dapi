@@ -18,6 +18,6 @@ const scmUserRefreshToken = new Schema({
   },
 });
 
-const UserRefreshToken = model('UserRefreshToken', scmUserRefreshToken, 'userrefreshtokens');
+const UserRefreshToken = model('UserRefreshToken', scmUserRefreshToken, 'user_refreshtokens');
 
 export default UserRefreshToken;

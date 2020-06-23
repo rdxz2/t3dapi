@@ -11,13 +11,13 @@ const rtFtJwt = (request, response, next) => {
   const jwt = authorizationHeader.replace('Bearer ', '');
 
   // validate jwt
-  jsonwebtoken.verify(jwt, process.env.JWT_SECRET, { issuer: process.env.JWT_ISS, audience: process.env.JWT_AUD, ignoreExpiration: false }, (error, userInformation) => {
+  return jsonwebtoken.verify(jwt, process.env.JWT_SECRET, { issuer: process.env.JWT_ISS, audience: process.env.JWT_AUD, ignoreExpiration: false }, (error, userInformation) => {
     if (error) return resUnauthorized(response);
 
     // set user information
     request.user = userInformation;
 
-    next();
+    return next();
   });
 };
 

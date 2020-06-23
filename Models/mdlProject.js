@@ -13,7 +13,7 @@ const scmProject = new Schema({
   },
   description: {
     type: String,
-    max: 1000,
+    max: 100,
   },
   create_date: {
     type: Date,

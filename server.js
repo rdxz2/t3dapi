@@ -6,13 +6,13 @@ import { Server } from 'http';
 import makeStrmProjectHandler from './StreamProject/strmProjectHandler';
 import mongoose from 'mongoose';
 
-import { resNotFound } from './Responses/resBase';
+import { resNotFound, resException } from './Responses/resBase';
 import rtAuthentication from './Routes/rtAuthentication';
 import rtBase from './Routes/rtBase';
 import rtSelectList from './Routes/rtSelectList';
 import rtUser from './Routes/rtUser';
 import rtProject from './Routes/rtProject';
-import rtToDo from './Routes/rtToDo';
+import rtTodo from './Routes/rtTodo';
 import socketIo from 'socket.io';
 // import StrmProjectClientManager from './StreamProject/strmProjectClientManager';
 import StrmProjectProjectRoomManager from './StreamProject/strmProjectProjectRoomManager';
@@ -66,11 +66,16 @@ app.use('/api/authentication', rtAuthentication);
 app.use('/api/user', rtUser);
 
 app.use('/api/project', rtProject);
-app.use('/api/todo', rtToDo);
+app.use('/api/todo', rtTodo);
 
 app.all('*', (request, response) => resNotFound(`route [${request.method}] ${request.url}`, response));
 
 // END -- ROUTES
+
+// global error handler (synchronous)
+app.use((error, request, response, next) => {
+  if (error) return resException(error, response);
+});
 
 // END -- CONFIGURE MIDDLEWARE
 
@@ -99,7 +104,7 @@ io.on('connection', (client) => {
   client.on('leave', strmProjectHandler.handleLeave);
 
   // to do created
-  client.on('todo_creating', strmProjectHandler.handleToDoCreating);
+  client.on('todo_creating', strmProjectHandler.handleTodoCreating);
 
   // START -- PREDEFINED LISTENERS
 

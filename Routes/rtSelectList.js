@@ -35,7 +35,7 @@ rtSelectList.post('/positionRegister', rtFtSelectList, async (request, response)
 // user
 rtSelectList.post('/user', [rtFtJwt, rtFtSelectList], async (request, response) => {
   // search user
-  const repoUsers = await User.find({ _id: { $ne: request.user._id }, name: { $regex: request.body.search, $options: 'i' } }).limit(parseInt(request.body.show));
+  const repoUsers = await User.find({ _id: { $ne: request.user.id }, name: { $regex: request.body.search, $options: 'i' } }).limit(parseInt(request.body.show));
 
   // convert to select list models
   const repoUserVMs = repoUsers.map((user) => createSelectListObject(user._id, user.name));

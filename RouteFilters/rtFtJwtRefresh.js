@@ -11,7 +11,7 @@ const rtFtJwtRefresh = (request, response, next) => {
   const jwt = authorizationHeader.replace('Bearer ', '');
 
   // validate jwt (ignore exp)
-  jsonwebtoken.verify(jwt, process.env.JWT_SECRET, { issuer: process.env.JWT_ISS, audience: process.env.JWT_AUD, ignoreExpiration: true }, (error, userInformation) => {
+  return jsonwebtoken.verify(jwt, process.env.JWT_SECRET, { issuer: process.env.JWT_ISS, audience: process.env.JWT_AUD, ignoreExpiration: true }, (error, userInformation) => {
     // get current epoch time
     const jwtExpiredDate = moment.unix(userInformation.exp);
 
@@ -20,14 +20,14 @@ const rtFtJwtRefresh = (request, response, next) => {
 
     // make sure jwt is already expired
     if (error || jwtExpiredDate.isAfter(now)) {
-      console.warn('unauthorized beace jwt is not expired', jwtExpiredDate.valueOf(), now.valueOf());
+      console.warn('unauthorized because jwt is not expired', jwtExpiredDate.valueOf(), now.valueOf());
       return resUnauthorized(response);
     }
 
     // set user information
     request.user = userInformation;
 
-    next();
+    return next();
   });
 };
 

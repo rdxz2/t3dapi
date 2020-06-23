@@ -29,6 +29,9 @@ export const resUnauthorized = (response) => resBase('you are not authorized..',
 // validation error
 export const resValidationError = (errorValidation, response) => resBase(getValidationErrorMessage(errorValidation), response, HTTPSTATUS.BADREQUEST);
 
+// single validation error
+export const resSingleValidationError = (data, response) => resBase(`${data} is invalid`, response, HTTPSTATUS.BADREQUEST);
+
 // already exist
 export const resIsExist = (data, response) => resBase(`${data} is already exist`, response, HTTPSTATUS.BADREQUEST);
 
