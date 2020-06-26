@@ -53,7 +53,7 @@ class StrmProjectProjectRoom {
     this._broadcastToAllClients(clientSender, 'todo_created', todo);
   }
 
-  // broadcast something to all client in this room
+  // broadcast something to all client in this room except the sender
   _broadcastToAllClients(clientSender, emitName, data) {
     Array.from(this.clients.entries())
       .filter(([id, client]) => id !== clientSender.id)

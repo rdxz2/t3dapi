@@ -6,10 +6,10 @@ const scmUserRefreshToken = new Schema({
     required: true,
     max: 16,
   },
-  expired_date: {
-    type: Date,
-    required: true,
-  },
+  // expired_date: {
+  //   type: Date,
+  //   required: true,
+  // },
   // fk: User
   user: {
     type: Schema.Types.ObjectId,

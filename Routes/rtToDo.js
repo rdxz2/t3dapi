@@ -9,6 +9,7 @@ import Todo from '../Models/mdlTodo';
 import { resBase, resException, resNotFound, resValidationError } from '../Responses/resBase';
 import rtFtJwt from '../RouteFilters/rtFtJwt';
 import { vldtTodoCreate, vldtTodoEditDescription, vldtTodoEditTags } from '../Validations/vldtTodo';
+import User from '../Models/mdlUser';
 
 const rtTodo = Router();
 
@@ -45,6 +46,10 @@ rtTodo.post('/:projectCode', rtFtJwt, async (request, response) => {
   const tblRepoProject = await Project.findOne({ code: request.params.projectCode, is_active: true }).select('_id');
   if (!tblRepoProject) return resNotFound(`project ${request.params.projectCode}`, response);
 
+  // get user
+  const repoUser = await User.findOne({ _id: request.user.id }).select('name');
+  if (!repoUser) return resNotFound('user', response);
+
   // make db model: to do
   const tbiRepoTodo = new Todo({
     description: request.body.description,
@@ -67,13 +72,23 @@ rtTodo.post('/:projectCode', rtFtJwt, async (request, response) => {
     const tbiTodoSaved = await tbiRepoTodo.save();
 
     // save project activity
-    await tbiProjectActivity.save();
+    // populate actor
+    const tbiProjectActivitySaved = await tbiProjectActivity.save();
 
     resBase(
       {
-        id: tbiTodoSaved._id,
-        description: tbiTodoSaved.description,
-        priority: tbiTodoSaved.priority,
+        todo: {
+          id: tbiTodoSaved._id,
+          description: tbiTodoSaved.description,
+          priority: tbiTodoSaved.priority,
+        },
+        activity: {
+          todo: tbiProjectActivitySaved.todo_action,
+          todo_action: tbiProjectActivitySaved.todo_action,
+          todo_description: tbiProjectActivitySaved.todo_description,
+          actor: repoUser,
+          create_date: tbiProjectActivitySaved.create_date,
+        },
       },
       response
     );

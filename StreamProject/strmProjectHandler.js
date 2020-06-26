@@ -39,13 +39,13 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
   }
 
   // client creating project
-  async function handleTodoCreating(todo = { projectCode: '', description: '', priority: 0 }, callback) {
+  async function handleTodoCreating(data = { projectCode: '', todo: {}, activity: {} }, callback) {
     try {
       // search project room
-      const selectedProjectRoom = await projectRoomManager.getProjectRoomByCode(todo.projectCode);
+      const selectedProjectRoom = await projectRoomManager.getProjectRoomByCode(data.projectCode);
 
       // broadcast newly created to do
-      selectedProjectRoom.broadcastTodoCreated(client, todo);
+      selectedProjectRoom.broadcastTodoCreated(client, data);
     } catch (error) {
       callback(error);
     }
