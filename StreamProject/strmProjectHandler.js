@@ -39,7 +39,7 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
   }
 
   // client creating project
-  async function handleTodoCreating(data = { projectCode: '', todo: {}, activity: {} }, callback) {
+  async function handleTodoCreating(data = { projectCode: '' }, callback) {
     try {
       // search project room
       const selectedProjectRoom = await projectRoomManager.getProjectRoomByCode(data.projectCode);
@@ -50,6 +50,34 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
       callback(error);
     }
   }
+
+  // client creating tag
+  async function handleTodoTagCreating(data = { projectCode: '' }, callback) {
+    try {
+      // search project room
+      const selectedProjectRoom = await projectRoomManager.getProjectRoomByCode(data.projectCode);
+
+      // broadcast newly created tag
+      selectedProjectRoom.broadcastTodoTagCreated(client, data);
+    } catch (error) {
+      callback(error);
+    }
+  }
+
+  // client deleting tag
+  async function handleTodoTagDeleting(data = { projectCode: '' }, callback) {
+    try {
+      // search project room
+      const selectedProjectRoom = await projectRoomManager.getProjectRoomByCode(data.projectCode);
+
+      // broadcast newly deleted tag
+      selectedProjectRoom.broadcastTodoTagDeleted(client, data);
+    } catch (error) {
+      callback(error);
+    }
+  }
+
+  // client deleting tag
 
   // client marking to do as completed
 
@@ -72,7 +100,7 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
   }
 
   // return above functions
-  return { handleJoin, handleLeave, handleTodoCreating, handleDisconnect };
+  return { handleJoin, handleLeave, handleTodoCreating, handleDisconnect, handleTodoTagCreating, handleTodoTagDeleting };
 };
 
 export default makeStrmProjectHandler;

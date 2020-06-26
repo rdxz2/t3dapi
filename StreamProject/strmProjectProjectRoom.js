@@ -53,10 +53,21 @@ class StrmProjectProjectRoom {
     this._broadcastToAllClients(clientSender, 'todo_created', todo);
   }
 
-  // broadcast something to all client in this room except the sender
+  // tag created
+  broadcastTodoTagCreated(clientSender, todo) {
+    this._broadcastToAllClients(clientSender, 'todotag_created', todo);
+  }
+
+  // tag deleted
+  broadcastTodoTagDeleted(clientSender, todo) {
+    this._broadcastToAllClients(clientSender, 'todotag_deletd', todo);
+  }
+
+  // broadcast something to all client in this room
+  // // except the sender
   _broadcastToAllClients(clientSender, emitName, data) {
     Array.from(this.clients.entries())
-      .filter(([id, client]) => id !== clientSender.id)
+      // .filter(([id, client]) => id !== clientSender.id)
       .forEach(([id, client]) => client.client.emit(emitName, data));
   }
 

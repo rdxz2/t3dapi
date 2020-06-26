@@ -179,6 +179,10 @@ rtTodo.get('/tag/:id', rtFtJwt, async (request, response) => {
   const tbuRepoTodo = await Todo.findOne({ _id: request.params.id }).select('description tags update_date');
   if (!tbuRepoTodo) return resNotFound('to do', response);
 
+  // get user
+  const repoUser = await User.findOne({ _id: request.user.id }).select('name');
+  if (!repoUser) return resNotFound('user', response);
+
   // get current time
   const now = moment();
 
@@ -187,7 +191,7 @@ rtTodo.get('/tag/:id', rtFtJwt, async (request, response) => {
   tbuRepoTodo.update_date = now;
 
   // make db model: project activity (created tags)
-  const tbiProjectActivityCreatedTags = new ProjectActivity({
+  const tbiRepoProjectActivity = new ProjectActivity({
     // link to do
     todo: tbuRepoTodo._id,
     todo_description: tbuRepoTodo.description,
@@ -202,9 +206,22 @@ rtTodo.get('/tag/:id', rtFtJwt, async (request, response) => {
     await tbuRepoTodo.save();
 
     // save project activity (created tags)
-    await tbiProjectActivityCreatedTags.save();
+    const tbiRepoProjectActivitySaved = await tbiRepoProjectActivity.save();
 
-    return resBase({ tag: request.query.tag }, response);
+    return resBase(
+      {
+        tag: request.query.tag,
+        activity: {
+          todo: tbiRepoProjectActivitySaved.todo,
+          todo_description: tbiRepoProjectActivitySaved.todo_description,
+          todo_action: tbiRepoProjectActivitySaved.todo_action,
+          todo_tag: tbiRepoProjectActivitySaved.todo_tag,
+          actor: repoUser,
+          create_date: tbiRepoProjectActivitySaved.create_date,
+        },
+      },
+      response
+    );
   } catch (error) {
     return resException(error, response);
   }
@@ -224,6 +241,10 @@ rtTodo.delete('/tag/:id', rtFtJwt, async (request, response) => {
   const tbdTagIndex = tbuRepoTodo.tags.indexOf(request.query.tag);
   if (tbdTagIndex < 0) return resNotFound(`tag ${request.query.tag}`, response);
 
+  // get user
+  const repoUser = await User.findOne({ _id: request.user.id }).select('name');
+  if (!repoUser) return resNotFound('user', response);
+
   // get current time
   const now = moment();
 
@@ -232,7 +253,7 @@ rtTodo.delete('/tag/:id', rtFtJwt, async (request, response) => {
   tbuRepoTodo.update_date = now;
 
   // make db model: project activity
-  const tbiProjectActivity = new ProjectActivity({
+  const tbiRepoProjectActivity = new ProjectActivity({
     // link to do
     todo: tbuRepoTodo._id,
     todo_description: tbuRepoTodo.description,
@@ -247,9 +268,22 @@ rtTodo.delete('/tag/:id', rtFtJwt, async (request, response) => {
     await tbuRepoTodo.save();
 
     // save project activity (deleted tags)
-    await tbiProjectActivity.save();
+    const tbiRepoProjectActivitySaved = await tbiRepoProjectActivity.save();
 
-    return resBase({ tag: request.query.tag }, response);
+    return resBase(
+      {
+        tag: request.query.tag,
+        activity: {
+          todo: tbiRepoProjectActivitySaved.todo,
+          todo_description: tbiRepoProjectActivitySaved.todo_description,
+          todo_action: tbiRepoProjectActivitySaved.todo_action,
+          todo_tag: tbiRepoProjectActivitySaved.todo_tag,
+          actor: repoUser,
+          create_date: tbiRepoProjectActivitySaved.create_date,
+        },
+      },
+      response
+    );
   } catch (error) {
     return resException(error, response);
   }

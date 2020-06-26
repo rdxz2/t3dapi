@@ -106,12 +106,17 @@ io.on('connection', (client) => {
   // to do created
   client.on('todo_creating', strmProjectHandler.handleTodoCreating);
 
+  // tag created
+  client.on('todotag_creating', strmProjectHandler.handleTodoTagCreating);
+
+  // tag deleted
+  client.on('todotag_deleting', strmProjectHandler.handleTodoTagDeleting);
+
   // START -- PREDEFINED LISTENERS
 
   // client disonnected from this server
   client.on('disconnect', (reason) => {
     console.warn(`client ${client.id} disconnected with reason '${reason}'`);
-
     strmProjectHandler.handleDisconnect();
   });
 
