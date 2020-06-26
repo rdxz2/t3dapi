@@ -279,7 +279,21 @@ rtProject.get('/activities/:projectCode', rtftJwt, async (request, response) => 
       $project: {
         allData: { count: 1 },
         paginatedData: {
-          activities: { _id: 1, project_action: 1, project_code: 1, project_name: 1, todo_action: 1, todo_description: 1, todo_completed: 1, todo_important: 1, todo_priority: 1, todo_tag: 1, create_date: 1, actor: { _id: 1, name: 1 } },
+          activities: {
+            _id: 1,
+            project_action: 1,
+            project_code: 1,
+            project_name: 1,
+            todo_action: 1,
+            todo_description: 1,
+            todo_description_new: 1,
+            todo_completed: 1,
+            todo_important: 1,
+            todo_priority: 1,
+            todo_tag: 1,
+            create_date: 1,
+            actor: { _id: 1, name: 1 },
+          },
         },
       },
     },

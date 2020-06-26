@@ -39,6 +39,10 @@ const scmProjectActivity = new Schema({
     type: String,
     max: 100,
   },
+  todo_description_new: {
+    type: String,
+    max: 100,
+  },
   todo_completed: {
     type: Boolean,
   },

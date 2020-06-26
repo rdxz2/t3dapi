@@ -63,6 +63,11 @@ class StrmProjectProjectRoom {
     this._broadcastToAllClients(clientSender, 'todotag_deletd', todo);
   }
 
+  // description edited
+  broadcastTodoDescriptionEdited(clientSender, todo) {
+    this._broadcastToAllClients(clientSender, 'tododesc_edited', todo);
+  }
+
   // broadcast something to all client in this room
   // // except the sender
   _broadcastToAllClients(clientSender, emitName, data) {

@@ -58,7 +58,7 @@ rtTodo.post('/:projectCode', rtFtJwt, async (request, response) => {
   });
 
   // make db model: project activity
-  const tbiProjectActivity = new ProjectActivity({
+  const tbiRepoProjectActivity = new ProjectActivity({
     // link to to do
     todo: tbiRepoTodo._id,
     todo_action: TODO.ACTION.CREATE,
@@ -73,7 +73,7 @@ rtTodo.post('/:projectCode', rtFtJwt, async (request, response) => {
 
     // save project activity
     // populate actor
-    const tbiProjectActivitySaved = await tbiProjectActivity.save();
+    const tbiRepoProjectActivitySaved = await tbiRepoProjectActivity.save();
 
     resBase(
       {
@@ -83,11 +83,11 @@ rtTodo.post('/:projectCode', rtFtJwt, async (request, response) => {
           priority: tbiTodoSaved.priority,
         },
         activity: {
-          todo: tbiProjectActivitySaved.todo_action,
-          todo_action: tbiProjectActivitySaved.todo_action,
-          todo_description: tbiProjectActivitySaved.todo_description,
+          todo: tbiRepoProjectActivitySaved.todo_action,
+          todo_action: tbiRepoProjectActivitySaved.todo_action,
+          todo_description: tbiRepoProjectActivitySaved.todo_description,
           actor: repoUser,
-          create_date: tbiProjectActivitySaved.create_date,
+          create_date: tbiRepoProjectActivitySaved.create_date,
         },
       },
       response
@@ -329,18 +329,52 @@ rtTodo.post('/description/:id', rtFtJwt, async (request, response) => {
   const tbuRepoTodo = await Todo.findOne({ _id: request.params.id }).select('description');
   if (!tbuRepoTodo) return resNotFound('to do', response);
 
+  // get user
+  const repoUser = await User.findOne({ _id: request.user.id }).select('name');
+  if (!repoUser) return resNotFound('user', response);
+
   // get current time
   const now = moment();
+
+  // save old description
+  const oldDescription = tbuRepoTodo.description;
 
   // update db model: to do
   tbuRepoTodo.description = request.body.description;
   tbuRepoTodo.update_date = now;
 
+  // make db model: project activity
+  const tbiRepoProjectActivity = new ProjectActivity({
+    // link to to do
+    todo: tbuRepoTodo._id,
+    todo_action: TODO.ACTION.EDIT_DESCRIPTION,
+    todo_description: oldDescription,
+    todo_description_new: request.body.description,
+    // link to user
+    actor: request.user.id,
+  });
+
   try {
     // save to do
     const tbuRepoTodoSaved = await tbuRepoTodo.save();
 
-    return resBase({ description: tbuRepoTodoSaved.description }, response);
+    // save project activity
+    const tbiRepoProjectActivitySaved = await tbiRepoProjectActivity.save();
+
+    return resBase(
+      {
+        todo: { id: tbuRepoTodoSaved._id, description: tbuRepoTodoSaved.description },
+        activity: {
+          todo: tbiRepoProjectActivitySaved.todo,
+          todo_action: tbiRepoProjectActivitySaved.todo_action,
+          todo_description: tbiRepoProjectActivitySaved.todo_description,
+          todo_description_new: tbiRepoProjectActivitySaved.todo_description_new,
+          actor: repoUser,
+          create_date: tbiRepoProjectActivitySaved.create_date,
+        },
+      },
+      response
+    );
   } catch (error) {
     return resException(error, response);
   }

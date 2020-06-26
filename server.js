@@ -106,11 +106,14 @@ io.on('connection', (client) => {
   // to do created
   client.on('todo_creating', strmProjectHandler.handleTodoCreating);
 
-  // tag created
+  // to do tag created
   client.on('todotag_creating', strmProjectHandler.handleTodoTagCreating);
 
-  // tag deleted
+  // to do tag deleted
   client.on('todotag_deleting', strmProjectHandler.handleTodoTagDeleting);
+
+  // to do description edited
+  client.on('tododesc_editing', strmProjectHandler.handleTodoDescriptionEditing);
 
   // START -- PREDEFINED LISTENERS
 
