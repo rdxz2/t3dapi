@@ -290,6 +290,7 @@ rtProject.get('/activities/:projectCode', rtftJwt, async (request, response) => 
             todo_completed: 1,
             todo_important: 1,
             todo_priority: 1,
+            todo_priority_new: 1,
             todo_tag: 1,
             create_date: 1,
             actor: { _id: 1, name: 1 },

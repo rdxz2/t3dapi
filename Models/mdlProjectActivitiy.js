@@ -53,6 +53,10 @@ const scmProjectActivity = new Schema({
     type: Number,
     enum: convertObjectValueToArray(TODO.PRIORITY),
   },
+  todo_priority_new: {
+    type: Number,
+    enum: convertObjectValueToArray(TODO.PRIORITY),
+  },
   todo_tag: {
     type: String,
   },

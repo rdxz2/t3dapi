@@ -115,6 +115,9 @@ io.on('connection', (client) => {
   // to do description edited
   client.on('tododesc_editing', strmProjectHandler.handleTodoDescriptionEditing);
 
+  // to do priority edited
+  client.on('todoprio_editing', strmProjectHandler.handleTodoPriorityEditing);
+
   // START -- PREDEFINED LISTENERS
 
   // client disonnected from this server

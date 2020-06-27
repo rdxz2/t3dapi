@@ -10,6 +10,7 @@ import { resBase, resException, resNotFound, resValidationError } from '../Respo
 import rtFtJwt from '../RouteFilters/rtFtJwt';
 import { vldtTodoCreate, vldtTodoEditDescription, vldtTodoEditTags } from '../Validations/vldtTodo';
 import User from '../Models/mdlUser';
+import { convertObjectValueToArray } from '../Utilities/utlType';
 
 const rtTodo = Router();
 
@@ -296,24 +297,60 @@ rtTodo.get('/priority/:id', rtFtJwt, async (request, response) => {
   if (!priorityLevel) return resNotFound('priority level', response);
 
   // check priority level in priority list
-  if (!TODO.PRIORITY.includes(priorityLevel)) return resNotFound('priority', response);
+  if (!convertObjectValueToArray(TODO.PRIORITY).includes(priorityLevel)) return resNotFound('priority', response);
 
   // search to do
-  const tbuRepoTodo = await Todo.findOne({ _id: request.params.id }).select('priority');
+  const tbuRepoTodo = await Todo.findOne({ _id: request.params.id }).select('description priority update_date');
   if (!tbuRepoTodo) return resNotFound('to do', response);
+
+  // get user
+  const repoUser = await User.findOne({ _id: request.user.id }).select('name');
+  if (!repoUser) return resNotFound('user', response);
 
   // get current time
   const now = moment();
+
+  // save old priority
+  const oldPriority = tbuRepoTodo.priority;
 
   // update db model: to do
   tbuRepoTodo.priority = priorityLevel;
   tbuRepoTodo.update_date = now;
 
+  // make db model: project activity
+  const tbiRepoProjectActivity = new ProjectActivity({
+    // link to to do
+    todo: tbuRepoTodo._id,
+    todo_action: TODO.ACTION.EDIT_PRIORITY,
+    todo_description: tbuRepoTodo.description,
+    todo_priority: oldPriority,
+    todo_priority_new: priorityLevel,
+    // link to user
+    actor: request.user.id,
+  });
+
   try {
     // save to do
     const tbuRepoTodoSaved = await tbuRepoTodo.save();
 
-    return resBase({ priority: tbuRepoTodoSaved.priority }, response);
+    // save project activity
+    const tbiRepoProjectActivitySaved = await tbiRepoProjectActivity.save();
+
+    return resBase(
+      {
+        todo: { id: tbuRepoTodoSaved._id, priority: tbuRepoTodoSaved.priority },
+        activity: {
+          todo: tbiRepoProjectActivitySaved.todo,
+          todo_action: tbiRepoProjectActivitySaved.todo_action,
+          todo_description: tbiRepoProjectActivitySaved.todo_description,
+          todo_priority: tbiRepoProjectActivitySaved.todo_priority,
+          todo_priority_new: tbiRepoProjectActivitySaved.todo_priority_new,
+          actor: repoUser,
+          create_date: tbiRepoProjectActivitySaved.create_date,
+        },
+      },
+      response
+    );
   } catch (error) {
     return resException(error, response);
   }

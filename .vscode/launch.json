@@ -5,7 +5,7 @@
       "request": "launch",
       "name": "nodemon",
       "runtimeExecutable": "nodemon",
-      "program": "D:/APP/t3d/t3dapi/start.js",
+      "program": "C:/APP/t3d/t3dapi/start.js",
       "restart": true,
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",

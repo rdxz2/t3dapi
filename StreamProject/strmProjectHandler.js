@@ -90,11 +90,22 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
     }
   }
 
+  // client changing to do priority
+  async function handleTodoPriorityEditing(data = { projectCode: '' }, callback) {
+    try {
+      // search project room
+      const selectedProjectRoom = await projectRoomManager.getProjectRoomByCode(data.projectCode);
+
+      // broadcast edited priority
+      selectedProjectRoom.broadcastTodoPriorityEdited(client, data);
+    } catch (error) {
+      callback(error);
+    }
+  }
+
   // client marking to do as completed
 
   // client marking to do as important
-
-  // client changing to do priority
 
   // client disconnected from project room
   function handleDisconnect() {
@@ -111,7 +122,7 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
   }
 
   // return above functions
-  return { handleJoin, handleLeave, handleTodoCreating, handleDisconnect, handleTodoTagCreating, handleTodoTagDeleting, handleTodoDescriptionEditing };
+  return { handleJoin, handleLeave, handleTodoCreating, handleDisconnect, handleTodoTagCreating, handleTodoTagDeleting, handleTodoDescriptionEditing, handleTodoPriorityEditing };
 };
 
 export default makeStrmProjectHandler;
