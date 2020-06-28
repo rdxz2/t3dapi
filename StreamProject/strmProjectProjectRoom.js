@@ -53,6 +53,16 @@ class StrmProjectProjectRoom {
     this._broadcastToAllClients(clientSender, 'todo_created', data);
   }
 
+  // to do complete toggled
+  broadcastTodoCompleteToggled(clientSender, data) {
+    this._broadcastToAllClients(clientSender, 'todocomp_toggled', data);
+  }
+
+  // to do important toggled
+  broadcastTodoImportantToggled(clientSender, data) {
+    this._broadcastToAllClients(clientSender, 'todoimp_toggled', data);
+  }
+
   // tag created
   broadcastTodoTagCreated(clientSender, data) {
     this._broadcastToAllClients(clientSender, 'todotag_created', data);

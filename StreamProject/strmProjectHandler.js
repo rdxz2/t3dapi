@@ -51,6 +51,32 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
     }
   }
 
+  // client toggling to do completed
+  async function handleTodoCompleteToggling(data = { projectCode: '' }, callback) {
+    try {
+      // search project room
+      const selectedProjectRoom = await projectRoomManager.getProjectRoomByCode(data.projectCode);
+
+      // broadcast toggled to do complete
+      selectedProjectRoom.broadcastTodoCompleteToggled(client, data);
+    } catch (error) {
+      callback(error);
+    }
+  }
+
+  // client toggling to do important
+  async function handleTodoImportantToggling(data = { projectCode: '' }, callback) {
+    try {
+      // search project room
+      const selectedProjectRoom = await projectRoomManager.getProjectRoomByCode(data.projectCode);
+
+      // broadcast toggled to do important
+      selectedProjectRoom.broadcastTodoImportantToggled(client, data);
+    } catch (error) {
+      callback(error);
+    }
+  }
+
   // client creating to do tag
   async function handleTodoTagCreating(data = { projectCode: '' }, callback) {
     try {
@@ -148,7 +174,20 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
   }
 
   // return above functions
-  return { handleJoin, handleLeave, handleTodoCreating, handleDisconnect, handleTodoTagCreating, handleTodoTagDeleting, handleTodoDescriptionEditing, handleTodoDetailEditing, handleTodoPriorityEditing, handleTodoCommenting };
+  return {
+    handleJoin,
+    handleLeave,
+    handleTodoCreating,
+    handleTodoCompleteToggling,
+    handleTodoImportantToggling,
+    handleDisconnect,
+    handleTodoTagCreating,
+    handleTodoTagDeleting,
+    handleTodoDescriptionEditing,
+    handleTodoDetailEditing,
+    handleTodoPriorityEditing,
+    handleTodoCommenting,
+  };
 };
 
 export default makeStrmProjectHandler;

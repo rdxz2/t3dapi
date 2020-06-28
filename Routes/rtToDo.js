@@ -152,21 +152,53 @@ rtTodo.post('/:projectCode', rtFtJwt, async (request, response) => {
 // toggle complete
 rtTodo.get('/complete/:id', rtFtJwt, async (request, response) => {
   // search to do
-  const tbuRepoTodo = await Todo.findOne({ _id: request.params.id }).select('is_completed');
+  const tbuRepoTodo = await Todo.findOne({ _id: request.params.id }).select('description is_completed update_date');
   if (!tbuRepoTodo) return resNotFound('to do', response);
+
+  // get user
+  const repoUser = await User.findOne({ _id: request.user.id }).select('name');
+  if (!repoUser) return resNotFound('user', response);
 
   // get current time
   const now = moment();
 
+  // convert query to boolean
+  const isCompleted = request.query.is_completed === 'true';
+
   // update db model: to do
-  tbuRepoTodo.is_completed = request.query.is_completed;
+  tbuRepoTodo.is_completed = isCompleted;
   tbuRepoTodo.update_date = now;
+
+  // make db model: project activity
+  const tbiRepoProjectActivity = new ProjectActivity({
+    // link to to do
+    todo: tbuRepoTodo._id,
+    todo_action: isCompleted ? TODO.ACTION.MARK_COMPLETED : TODO.ACTION.UNMARK_COMPLETED,
+    todo_description: tbuRepoTodo.description,
+    // link to user
+    actor: request.user.id,
+  });
 
   try {
     // save to do
     const tbuRepoTodoSaved = await tbuRepoTodo.save();
 
-    return resBase({ is_completed: tbuRepoTodoSaved.is_completed }, response);
+    // save project activity
+    const tbiRepoProjectActivitySaved = await tbiRepoProjectActivity.save();
+
+    return resBase(
+      {
+        todo: { id: tbuRepoTodoSaved._id, is_completed: tbuRepoTodoSaved.is_completed },
+        activity: {
+          todo: tbiRepoProjectActivitySaved.todo,
+          todo_action: tbiRepoProjectActivitySaved.todo_action,
+          todo_description: tbiRepoProjectActivitySaved.todo_description,
+          actor: repoUser,
+          create_date: tbiRepoProjectActivitySaved.create_date,
+        },
+      },
+      response
+    );
   } catch (error) {
     return resException(error, response);
   }
@@ -175,21 +207,53 @@ rtTodo.get('/complete/:id', rtFtJwt, async (request, response) => {
 // toggle important
 rtTodo.get('/important/:id', rtFtJwt, async (request, response) => {
   // search to do
-  const tbuRepoTodo = await Todo.findOne({ _id: request.params.id }).select('is_important');
+  const tbuRepoTodo = await Todo.findOne({ _id: request.params.id }).select('description is_important update_date');
   if (!tbuRepoTodo) return resNotFound('to do', response);
+
+  // get user
+  const repoUser = await User.findOne({ _id: request.user.id }).select('name');
+  if (!repoUser) return resNotFound('user', response);
 
   // get current time
   const now = moment();
 
+  // convert query to boolean
+  const isImportant = request.query.is_important === 'true';
+
   // update db model: to do
-  tbuRepoTodo.is_important = request.query.is_important;
+  tbuRepoTodo.is_important = isImportant;
   tbuRepoTodo.update_date = now;
+
+  // make db model: project activity
+  const tbiRepoProjectActivity = new ProjectActivity({
+    // link to to do
+    todo: tbuRepoTodo._id,
+    todo_action: isImportant ? TODO.ACTION.MARK_IMPORTANT : TODO.ACTION.UNMARK_IMPORTANT,
+    todo_description: tbuRepoTodo.description,
+    // link to user
+    actor: request.user.id,
+  });
 
   try {
     // save to do
     const tbuRepoTodoSaved = await tbuRepoTodo.save();
 
-    return resBase({ is_important: tbuRepoTodoSaved.is_important }, response);
+    // save project activity
+    const tbiRepoProjectActivitySaved = await tbiRepoProjectActivity.save();
+
+    return resBase(
+      {
+        todo: { id: tbuRepoTodoSaved._id, is_important: tbuRepoTodoSaved.is_important },
+        activity: {
+          todo: tbiRepoProjectActivitySaved.todo,
+          todo_action: tbiRepoProjectActivitySaved.todo_action,
+          todo_description: tbiRepoProjectActivitySaved.todo_description,
+          actor: repoUser,
+          create_date: tbiRepoProjectActivitySaved.create_date,
+        },
+      },
+      response
+    );
   } catch (error) {
     return resException(error, response);
   }

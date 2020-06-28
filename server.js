@@ -106,6 +106,12 @@ io.on('connection', (client) => {
   // to do created
   client.on('todo_creating', strmProjectHandler.handleTodoCreating);
 
+  // to do complete toggled
+  client.on('todocomp_toggling', strmProjectHandler.handleTodoCompleteToggling);
+
+  // to do important toggled
+  client.on('todoimp_toggling', strmProjectHandler.handleTodoImportantToggling);
+
   // to do tag created
   client.on('todotag_creating', strmProjectHandler.handleTodoTagCreating);
 
