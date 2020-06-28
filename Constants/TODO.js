@@ -8,6 +8,7 @@ const TODO = {
     DELETE_TAG: 'del_tag',
     // editing/changing
     EDIT_DESCRIPTION: 'edit_desc',
+    EDIT_DETAIL: 'edit_detail',
     EDIT_PRIORITY: 'edit_prio',
     // marking
     MARK_COMPLETED: 'mark_complete',

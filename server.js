@@ -115,6 +115,9 @@ io.on('connection', (client) => {
   // to do description edited
   client.on('tododesc_editing', strmProjectHandler.handleTodoDescriptionEditing);
 
+  // to do detail edited
+  client.on('tododetail_editing', strmProjectHandler.handleTodoDetailEditing);
+
   // to do priority edited
   client.on('todoprio_editing', strmProjectHandler.handleTodoPriorityEditing);
 

@@ -8,6 +8,9 @@ const scmTodo = new Schema({
     required: true,
     max: 100,
   },
+  detail: {
+    type: String,
+  },
   tags: [
     {
       type: String,

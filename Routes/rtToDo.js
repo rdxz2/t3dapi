@@ -37,6 +37,31 @@ rtTodo.get('/:projectCode', rtFtJwt, async (request, response) => {
   return resBase(repoTodosRemapped, response);
 });
 
+// get one (detail)
+rtTodo.get('/detail/:id', rtFtJwt, async (request, response) => {
+  // search to do
+  const repoTodo = await Todo.findOne({ _id: request.params.id }).populate('creator', 'name');
+  if (!repoTodo) return resNotFound('to do', response);
+
+  return resBase(
+    {
+      id: repoTodo._id,
+      creatorId: repoTodo.creator._id,
+      creatorName: repoTodo.creator.name,
+      description: repoTodo.description,
+      detail: repoTodo.detail,
+      is_completed: repoTodo.is_completed,
+      is_active: repoTodo.is_active,
+      is_important: repoTodo.is_important,
+      priority: repoTodo.priority,
+      tags: repoTodo.tags,
+      create_date: repoTodo.create_date,
+      update_date: repoTodo.update_date,
+    },
+    response
+  );
+});
+
 // create
 rtTodo.post('/:projectCode', rtFtJwt, async (request, response) => {
   // validate model
@@ -99,30 +124,6 @@ rtTodo.post('/:projectCode', rtFtJwt, async (request, response) => {
 });
 
 // edit
-
-// detail
-rtTodo.get('/detail/:id', rtFtJwt, async (request, response) => {
-  // search to do
-  const repoTodo = await Todo.findOne({ _id: request.params.id }).populate('creator', 'name');
-  if (!repoTodo) return resNotFound('to do', response);
-
-  return resBase(
-    {
-      id: repoTodo._id,
-      creatorId: repoTodo.creator._id,
-      creatorName: repoTodo.creator.name,
-      description: repoTodo.description,
-      is_completed: repoTodo.is_completed,
-      is_active: repoTodo.is_active,
-      is_important: repoTodo.is_important,
-      priority: repoTodo.priority,
-      tags: repoTodo.tags,
-      create_date: repoTodo.create_date,
-      update_date: repoTodo.update_date,
-    },
-    response
-  );
-});
 
 // toggle complete
 rtTodo.get('/complete/:id', rtFtJwt, async (request, response) => {
@@ -406,6 +407,58 @@ rtTodo.post('/description/:id', rtFtJwt, async (request, response) => {
           todo_action: tbiRepoProjectActivitySaved.todo_action,
           todo_description: tbiRepoProjectActivitySaved.todo_description,
           todo_description_new: tbiRepoProjectActivitySaved.todo_description_new,
+          actor: repoUser,
+          create_date: tbiRepoProjectActivitySaved.create_date,
+        },
+      },
+      response
+    );
+  } catch (error) {
+    return resException(error, response);
+  }
+});
+
+// change detail
+rtTodo.post('/detail/:id', rtFtJwt, async (request, response) => {
+  // search to do
+  const tbuRepoTodo = await Todo.findOne({ _id: request.params.id }).select('description detail update_date');
+  if (!tbuRepoTodo) return resNotFound('to do', response);
+
+  // get user
+  const repoUser = await User.findOne({ _id: request.user.id }).select('name');
+  if (!repoUser) return resNotFound('user', response);
+
+  // get current time
+  const now = moment();
+
+  // update db model: to do
+  tbuRepoTodo.detail = request.body.detail;
+  tbuRepoTodo.update_date = now;
+
+  // make db model: project activity
+  const tbiRepoProjectActivity = new ProjectActivity({
+    // link to to do
+    todo: tbuRepoTodo._id,
+    todo_action: TODO.ACTION.EDIT_DETAIL,
+    todo_description: tbuRepoTodo.description,
+    // link to user
+    actor: request.user.id,
+  });
+
+  try {
+    // save to do
+    const tbuRepoTodoSaved = await tbuRepoTodo.save();
+
+    // save project activity
+    const tbiRepoProjectActivitySaved = await tbiRepoProjectActivity.save();
+
+    return resBase(
+      {
+        todo: { id: tbuRepoTodoSaved._id },
+        activity: {
+          todo: tbiRepoProjectActivitySaved.todo,
+          todo_action: tbiRepoProjectActivitySaved.todo_action,
+          todo_description: tbiRepoProjectActivitySaved.todo_description,
           actor: repoUser,
           create_date: tbiRepoProjectActivitySaved.create_date,
         },

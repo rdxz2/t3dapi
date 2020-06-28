@@ -90,6 +90,19 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
     }
   }
 
+  // client editing to do detail
+  async function handleTodoDetailEditing(data = { projectCode: '' }, callback) {
+    try {
+      // search project room
+      const selectedProjectRoom = await projectRoomManager.getProjectRoomByCode(data.projectCode);
+
+      // broadcast edited detail
+      selectedProjectRoom.broadcastTodoDetailEdited(client, data);
+    } catch (error) {
+      callback(error);
+    }
+  }
+
   // client changing to do priority
   async function handleTodoPriorityEditing(data = { projectCode: '' }, callback) {
     try {
@@ -122,7 +135,7 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
   }
 
   // return above functions
-  return { handleJoin, handleLeave, handleTodoCreating, handleDisconnect, handleTodoTagCreating, handleTodoTagDeleting, handleTodoDescriptionEditing, handleTodoPriorityEditing };
+  return { handleJoin, handleLeave, handleTodoCreating, handleDisconnect, handleTodoTagCreating, handleTodoTagDeleting, handleTodoDescriptionEditing, handleTodoDetailEditing, handleTodoPriorityEditing };
 };
 
 export default makeStrmProjectHandler;
