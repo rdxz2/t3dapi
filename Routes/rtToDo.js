@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, request, response } from 'express';
 import { toInteger } from 'lodash';
 import moment from 'moment';
 
@@ -6,11 +6,12 @@ import TODO from '../Constants/TODO';
 import Project from '../Models/mdlProject';
 import ProjectActivity from '../Models/mdlProjectActivitiy';
 import Todo from '../Models/mdlTodo';
-import { resBase, resException, resNotFound, resValidationError } from '../Responses/resBase';
+import { resBase, resException, resNotFound, resValidationError, resSingleValidationError } from '../Responses/resBase';
 import rtFtJwt from '../RouteFilters/rtFtJwt';
-import { vldtTodoCreate, vldtTodoEditDescription, vldtTodoEditTags } from '../Validations/vldtTodo';
+import { vldtTodoCreate, vldtTodoEditDescription, vldtTodoEditTags, vldtTodoComment } from '../Validations/vldtTodo';
 import User from '../Models/mdlUser';
-import { convertObjectValueToArray } from '../Utilities/utlType';
+import { convertObjectValueToArray, calculateSkipValue } from '../Utilities/utlType';
+import TodoComment from '../Models/mdlTodoComment';
 
 const rtTodo = Router();
 
@@ -40,12 +41,16 @@ rtTodo.get('/:projectCode', rtFtJwt, async (request, response) => {
 // get one (detail)
 rtTodo.get('/detail/:id', rtFtJwt, async (request, response) => {
   // search to do
-  const repoTodo = await Todo.findOne({ _id: request.params.id }).populate('creator', 'name');
+  const repoTodo = await Todo.findOne({ _id: request.params.id }).populate('project', 'code').populate('creator', 'name');
   if (!repoTodo) return resNotFound('to do', response);
+
+  // search comments
+  const repoTodoComments = await TodoComment.find({ todo: repoTodo._id }).populate('commenter', 'name').select('description create_date');
 
   return resBase(
     {
       id: repoTodo._id,
+      projectCode: repoTodo.project.code,
       creatorId: repoTodo.creator._id,
       creatorName: repoTodo.creator.name,
       description: repoTodo.description,
@@ -55,11 +60,30 @@ rtTodo.get('/detail/:id', rtFtJwt, async (request, response) => {
       is_important: repoTodo.is_important,
       priority: repoTodo.priority,
       tags: repoTodo.tags,
+      comments: repoTodoComments,
       create_date: repoTodo.create_date,
       update_date: repoTodo.update_date,
     },
     response
   );
+});
+
+// get activities
+rtTodo.get('/activities/:id', rtFtJwt, async (request, response) => {
+  // convert page size
+  const pageSize = toInteger(request.query.pageSize);
+  if (!pageSize) return resSingleValidationError('page size', response);
+
+  // convert current page
+  const currentPage = toInteger(request.query.currentPage);
+  if (!currentPage) return resSingleValidationError('page number', response);
+
+  // search to do activities
+  const filter = { todo: request.params.id };
+  const repoProjectActivitiesCount = await ProjectActivity.countDocuments(filter);
+  const repoProjectActivities = await ProjectActivity.find(filter).sort('-create_date').skip(calculateSkipValue(pageSize, currentPage)).limit(pageSize).populate('actor', 'name');
+
+  return resBase({ projectActivitiesTotalData: repoProjectActivitiesCount, projectActivities: repoProjectActivities }, response);
 });
 
 // create
@@ -459,6 +483,65 @@ rtTodo.post('/detail/:id', rtFtJwt, async (request, response) => {
           todo: tbiRepoProjectActivitySaved.todo,
           todo_action: tbiRepoProjectActivitySaved.todo_action,
           todo_description: tbiRepoProjectActivitySaved.todo_description,
+          actor: repoUser,
+          create_date: tbiRepoProjectActivitySaved.create_date,
+        },
+      },
+      response
+    );
+  } catch (error) {
+    return resException(error, response);
+  }
+});
+
+// comment
+rtTodo.post('/comment/:id', rtFtJwt, async (request, response) => {
+  // validate model
+  const { error: errorValidation } = vldtTodoComment(request.body);
+  if (errorValidation) return resValidationError(errorValidation, response);
+
+  // search to do
+  const repoTodo = await Todo.findOne({ _id: request.params.id }).select('description');
+  if (!repoTodo) return resNotFound('to do', response);
+
+  // get user
+  const repoUser = await User.findOne({ _id: request.user.id }).select('name');
+  if (!repoUser) return resNotFound('user', response);
+
+  // make db model
+  const tbiRepoTodoComment = new TodoComment({
+    description: request.body.description,
+    parent: request.body.parent,
+    todo: repoTodo._id,
+    commenter: request.user.id,
+  });
+
+  // make db model: project activity
+  const tbiRepoProjectActivity = new ProjectActivity({
+    // link to to do
+    todo: repoTodo._id,
+    todo_action: TODO.ACTION.COMMENT,
+    todo_description: repoTodo.description,
+    todo_comment: request.body.description,
+    // link to user
+    actor: request.user.id,
+  });
+
+  try {
+    // save to do comment
+    const tbiRepoTodoCommentSaved = await tbiRepoTodoComment.save();
+
+    // save project activity
+    const tbiRepoProjectActivitySaved = await tbiRepoProjectActivity.save();
+
+    return resBase(
+      {
+        comment: { commenter: repoUser, description: tbiRepoTodoCommentSaved.description, create_date: tbiRepoTodoCommentSaved.create_date, parent: tbiRepoTodoCommentSaved.parent },
+        activity: {
+          todo: tbiRepoProjectActivitySaved.todo,
+          todo_action: tbiRepoProjectActivitySaved.todo_action,
+          todo_description: tbiRepoProjectActivitySaved.todo_description,
+          todo_description_new: tbiRepoProjectActivitySaved.todo_description_new,
           actor: repoUser,
           create_date: tbiRepoProjectActivitySaved.create_date,
         },

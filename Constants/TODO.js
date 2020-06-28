@@ -6,6 +6,7 @@ const TODO = {
     // specific
     CREATE_TAG: 'create_tag',
     DELETE_TAG: 'del_tag',
+    COMMENT: 'comment',
     // editing/changing
     EDIT_DESCRIPTION: 'edit_desc',
     EDIT_DETAIL: 'edit_detail',

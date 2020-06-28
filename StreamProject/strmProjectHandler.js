@@ -116,6 +116,19 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
     }
   }
 
+  // client commenting a to do
+  async function handleTodoCommenting(data = { projectCode: '' }, callback) {
+    try {
+      // search project room
+      const selectedProjectRoom = await projectRoomManager.getProjectRoomByCode(data.projectCode);
+
+      // broadcast commented to do
+      selectedProjectRoom.broadcastTodoCommented(client, data);
+    } catch (error) {
+      callback(error);
+    }
+  }
+
   // client marking to do as completed
 
   // client marking to do as important
@@ -135,7 +148,7 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
   }
 
   // return above functions
-  return { handleJoin, handleLeave, handleTodoCreating, handleDisconnect, handleTodoTagCreating, handleTodoTagDeleting, handleTodoDescriptionEditing, handleTodoDetailEditing, handleTodoPriorityEditing };
+  return { handleJoin, handleLeave, handleTodoCreating, handleDisconnect, handleTodoTagCreating, handleTodoTagDeleting, handleTodoDescriptionEditing, handleTodoDetailEditing, handleTodoPriorityEditing, handleTodoCommenting };
 };
 
 export default makeStrmProjectHandler;

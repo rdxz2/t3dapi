@@ -49,33 +49,38 @@ class StrmProjectProjectRoom {
   }
 
   // to do created
-  broadcastTodoCreated(clientSender, todo) {
-    this._broadcastToAllClients(clientSender, 'todo_created', todo);
+  broadcastTodoCreated(clientSender, data) {
+    this._broadcastToAllClients(clientSender, 'todo_created', data);
   }
 
   // tag created
-  broadcastTodoTagCreated(clientSender, todo) {
-    this._broadcastToAllClients(clientSender, 'todotag_created', todo);
+  broadcastTodoTagCreated(clientSender, data) {
+    this._broadcastToAllClients(clientSender, 'todotag_created', data);
   }
 
   // tag deleted
-  broadcastTodoTagDeleted(clientSender, todo) {
-    this._broadcastToAllClients(clientSender, 'todotag_deletd', todo);
+  broadcastTodoTagDeleted(clientSender, data) {
+    this._broadcastToAllClients(clientSender, 'todotag_deletd', data);
   }
 
   // description edited
-  broadcastTodoDescriptionEdited(clientSender, todo) {
-    this._broadcastToAllClients(clientSender, 'tododesc_edited', todo);
+  broadcastTodoDescriptionEdited(clientSender, data) {
+    this._broadcastToAllClients(clientSender, 'tododesc_edited', data);
   }
 
   // detail edited
-  broadcastTodoDetailEdited(clientSender, todo) {
-    this._broadcastToAllClients(clientSender, 'tododetail_edited', todo);
+  broadcastTodoDetailEdited(clientSender, data) {
+    this._broadcastToAllClients(clientSender, 'tododetail_edited', data);
   }
 
   // priority edited
-  broadcastTodoPriorityEdited(clientSender, todo) {
-    this._broadcastToAllClients(clientSender, 'todoprio_edited', todo);
+  broadcastTodoPriorityEdited(clientSender, data) {
+    this._broadcastToAllClients(clientSender, 'todoprio_edited', data);
+  }
+
+  // to do commented
+  broadcastTodoCommented(clientSender, data) {
+    this._broadcastToAllClients(clientSender, 'todo_commented', data);
   }
 
   // broadcast something to all client in this room

@@ -71,7 +71,7 @@ export const convertCollectionToObject = (inputs, keyField = '', fields = []) =>
   return object;
 };
 
-// ENd -- COLLECTION
+// END -- COLLECTION
 
 // START  -- STRING
 
@@ -84,5 +84,8 @@ export const convertIsoDateToMoment = (input, format = TIMEFORMAT.DDMMMMYYYYHHMM
 // END -- STRING
 
 // START  -- NUMBER
+
+// calculate first data index to be showed for pagination
+export const calculateSkipValue = (pageSize, currentPage) => pageSize * (currentPage - 1);
 
 // END -- NUMBER

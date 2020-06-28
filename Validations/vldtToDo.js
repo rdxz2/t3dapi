@@ -17,3 +17,9 @@ export const vldtTodoEditDescription = (data) =>
   Joi.object({
     description: Joi.string().max(100).required(),
   }).validate(data);
+
+// comment
+export const vldtTodoComment = (data) =>
+  Joi.object({
+    description: Joi.string().max(100).required(),
+  }).validate(data);

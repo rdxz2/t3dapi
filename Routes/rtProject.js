@@ -9,6 +9,7 @@ import rtftJwt from '../RouteFilters/rtFtJwt';
 import { vldtProjectCreate, vldtProjectEdit } from '../Validations/vldtProject';
 import PROJECT from '../Constants/PROJECT';
 import { toInteger } from 'lodash';
+import { calculateSkipValue } from '../Utilities/utlType';
 
 const rtProject = Router();
 
@@ -265,7 +266,7 @@ rtProject.get('/activities/:projectCode', rtftJwt, async (request, response) => 
         // make a paginated data
         paginatedData: [
           // apply pagination
-          { $skip: pageSize * (currentPage - 1) },
+          { $skip: calculateSkipValue(pageSize, currentPage) },
           { $limit: pageSize },
           // group the unwinded, sorted, and paged activities
           { $group: { _id: '$_id', activities: { $push: '$activities' } } },

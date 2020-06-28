@@ -60,6 +60,10 @@ const scmProjectActivity = new Schema({
   todo_tag: {
     type: String,
   },
+  todo_comment: {
+    type: String,
+    max: 100,
+  },
   // fk: User
   actor: {
     type: Schema.Types.ObjectId,
