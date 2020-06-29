@@ -149,22 +149,9 @@ rtAuthentication.post('/refresh', rtFtJwtRefresh, async (request, response) => {
 // log out
 rtAuthentication.get('/logout', rtFtJwt, async (request, response) => {
   // search for user
-  const repoUser = await User.findOne({ _id: request.user.id });
-  if (!repoUser) return resNotFound('user', response);
+  await User.deleteOne({ _id: request.user.id });
 
-  try {
-    // delete existing user's refresh tokens
-    await UserRefreshToken.deleteMany({ user: request.user.id });
-
-    return resBase(
-      {
-        name: repoUser.name,
-      },
-      response
-    );
-  } catch (error) {
-    return resException(error, response);
-  }
+  return resBase('logged out', response);
 });
 
 export default rtAuthentication;

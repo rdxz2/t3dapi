@@ -30,6 +30,7 @@
     "space-before-blocks": "off",
     "handle-callback-err": "warn",
     "space-before-function-paren": "off",
-    "arrow-spacing": "off"
+    "arrow-spacing": "off",
+    "brace-style": "off"
   }
 }

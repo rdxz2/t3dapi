@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import moment from 'moment';
 import mongoose from 'mongoose';
-
+import ProjectActivity from '../Models/mdlProjectActivitiy';
 import User from '../Models/mdlUser';
-import { resBase, resNotFound } from '../Responses/resBase';
+import { resBase, resNotFound, resSingleValidationError } from '../Responses/resBase';
 import rtFtJwt from '../RouteFilters/rtFtJwt';
+import { calculateSkipValue } from '../Utilities/utlType';
+import { toInteger } from 'lodash';
 
 const rtUser = Router();
 
@@ -76,8 +78,21 @@ rtUser.get('/recentprojects', rtFtJwt, async (request, response) => {
 });
 
 // recent activities
-rtUser.get('/recentactivities', rtFtJwt, (request, response) => {
-  return resBase([], response);
+rtUser.get('/recentactivities', rtFtJwt, async (request, response) => {
+  // convert page size
+  const pageSize = toInteger(request.query.pageSize);
+  if (!pageSize) return resSingleValidationError('page size', response);
+
+  // convert current page
+  const currentPage = toInteger(request.query.currentPage);
+  if (!currentPage) return resSingleValidationError('page number', response);
+
+  // search project activities
+  const filter = { actor: request.user.id };
+  const repoProjectActivitiesCount = await ProjectActivity.countDocuments(filter);
+  const repoProjectActivities = await ProjectActivity.find(filter).sort('-create_date').skip(calculateSkipValue(pageSize, currentPage)).limit(pageSize).populate('actor', 'name').select('-__v');
+
+  return resBase({ projectActivitiesTotalData: repoProjectActivitiesCount, projectActivities: repoProjectActivities }, response);
 });
 
 // calendar schedules

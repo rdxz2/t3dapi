@@ -2,6 +2,7 @@ import { json, urlencoded } from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
+import webpush from 'web-push';
 import { Server } from 'http';
 import makeStrmProjectHandler from './StreamProject/strmProjectHandler';
 import mongoose from 'mongoose';
@@ -16,6 +17,7 @@ import rtTodo from './Routes/rtTodo';
 import socketIo from 'socket.io';
 // import StrmProjectClientManager from './StreamProject/strmProjectClientManager';
 import StrmProjectProjectRoomManager from './StreamProject/strmProjectProjectRoomManager';
+import rtPushNotification from './Routes/rtPushNotification';
 
 // initialize express app
 const app = express();
@@ -43,6 +45,9 @@ mongoose.connect(
   }
 );
 
+// configure push notification vapid details
+webpush.setVapidDetails(process.env.VAPID_SUBJECT, process.env.VAPID_KEY_PUBLIC, process.env.VAPID_KEY_PRIVATE);
+
 // START -- CONFIGURE MIDDLEWARE
 
 // use cors
@@ -67,6 +72,8 @@ app.use('/api/user', rtUser);
 
 app.use('/api/project', rtProject);
 app.use('/api/todo', rtTodo);
+
+app.use('/api/pushnotification', rtPushNotification);
 
 app.all('*', (request, response) => resNotFound(`route [${request.method}] ${request.url}`, response));
 

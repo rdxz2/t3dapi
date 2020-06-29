@@ -1,6 +1,6 @@
 {
   "name": "t3dapi",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "to do driven development",
   "main": "start.js",
   "scripts": {
@@ -23,7 +23,8 @@
     "moment": "^2.26.0",
     "mongoose": "^5.9.18",
     "rand-token": "^1.0.1",
-    "socket.io": "^2.3.0"
+    "socket.io": "^2.3.0",
+    "web-push": "^3.4.4"
   },
   "devDependencies": {
     "eslint": "^7.2.0",
