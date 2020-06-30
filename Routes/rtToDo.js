@@ -617,4 +617,7 @@ rtTodo.post('/comment/:id', rtFtJwt, async (request, response) => {
   }
 });
 
+// create reminder
+rtTodo.post('/remider/:id', rtFtJwt, async (request, response) => {});
+
 export default rtTodo;

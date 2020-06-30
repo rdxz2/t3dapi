@@ -3,10 +3,11 @@ import { Router } from 'express';
 import Department from '../Models/mdlDepartment';
 import Position from '../Models/mdlPosition';
 import User from '../Models/mdlUser';
-import { resBase } from '../Responses/resBase';
+import { resBase, resNotFound } from '../Responses/resBase';
 import rtFtJwt from '../RouteFilters/rtFtJwt';
 import rtFtSelectList from '../RouteFilters/rtFtSelectList';
 import { createSelectListObject } from '../Utilities/utlSelectList';
+import Project from '../Models/mdlProject';
 
 const rtSelectList = Router();
 
@@ -41,6 +42,18 @@ rtSelectList.post('/user', [rtFtJwt, rtFtSelectList], async (request, response) 
   const repoUserVMs = repoUsers.map((user) => createSelectListObject(user._id, user.name));
 
   return resBase(repoUserVMs, response);
+});
+
+// user (project)
+rtSelectList.post('/projectuser/:projectCode', [rtFtJwt, rtFtSelectList], async (request, response) => {
+  // search project
+  const repoProject = await Project.findOne({ code: request.params.projectCode }).populate('collaborators', 'name').select();
+  if (!repoProject) return resNotFound(`project ${request.params.projectCode}`, response);
+
+  // get collaborators
+  const collaborators = repoProject.collaborators.map((collaborator) => ({ id: collaborator.id, name: collaborator.name }));
+
+  return resBase(collaborators, response);
 });
 
 export default rtSelectList;

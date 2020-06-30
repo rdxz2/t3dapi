@@ -1,0 +1,90 @@
+v0.1.13
+	+ push notification subscribe & unsubscribe functions + save/delete user subscription data in database
+
+v0.1.12
+	+ broadcast for to do important toggled
+	+ broadcast for to do complete toggled
+
+v0.1.11
+ + to do comments
+	^ activity for to do comments
+	+ broadcasting to do comments
+
+v0.1.10
+	+ to do detail changed
+	+ broadcast on to do detail changed
+
+v0.1.9
+	^ editing to do priority will respond with created activity
+	+ added to do priority editing broadcast
+
+v0.1.8
+	^ editing to do description will respond with created activity
+	+ to add to do description edit broadcast
+
+v0.1.7
+	^ creating/deleting tag will respond with created activity
+	+ add to do tag created/deleted broadcast
+	- broadcast will be sent to every client in the room including the sender
+
+v0.1.6
+	+ creating to do will give back an activity in response body
+
+v0.1.5
+	+ use of project activity model
+	+ project activities pagination query
+	^ rename [tT]oDo -> [tT]odo
+	+ activity, project, todo constants for easier project activity data mapping
+	^ project room client has property: client, (-) user, (+) id, (+) username for better code brevity
+	^ client joining project room is sending its user id and username
+	^ client leaving project room will send its user id and username
+	^ create & delete tag is two different action (each providing single tag)
+	+ type utilities to manage data type manipulation
+	+ timeformat constants for time format standarization
+	+ single validation error message
+	
+v0.1.4
+	^ subscribing client must provide its id and name to be accessed by other client
+	^ minimal profile needs user id explicitly
+
+v0.1.3
+	+ to do description edit
+
+v0.1.2
+	^ using id instead of _id for client
+	+ streamer project handle to do creating & emit to do created
+	^ implement broadcast to all user in project room except the sender
+
+v0.1.1
+	f fix project & user removal variable on leave/disconnect
+
+v0.1.0
+	+ project collaborator joining & leaving broadcast
+
+v0.0.4
+	^ structured to do detail
+	^ send priority to to do get all
+	init project streamer
+
+v0.0.3
+	^ refresh token not renewing and never expired
+	+ create to do tag
+	+ toggle to do important
+	+ change to do priority
+
+v0.0.2
+	f refresh token route filter: jwt expired date comparation (make sure jwt is expired)
+	f refresh token expired date comparation (make sure refresh token is not expired)
+	^ request for refresh token will refresh the refresh token in database
+
+v0.0.1
+	+ init
+	+ login
+	+ register
+	+ project create
+	+ project edit
+	+ update project last accessed date on opened by user
+	+ to do create
+	+ to do edit
+	+ to do toggle completed
+	+ refresh token
