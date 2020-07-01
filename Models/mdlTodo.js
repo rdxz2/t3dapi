@@ -33,6 +33,12 @@ const scmTodo = new Schema({
     default: TODO.PRIORITY.NORMAL,
     enum: convertObjectValueToArray(TODO.PRIORITY),
   },
+  date_start: {
+    type: Date,
+  },
+  date_end: {
+    type: Date,
+  },
   create_date: {
     type: Date,
     default: Date.now,

@@ -636,7 +636,7 @@ rtTodo.post('/comment/:id', rtFtJwt, async (request, response) => {
   }
 });
 
-// create reminder
+// change reminder
 rtTodo.get('/reminder/:id', rtFtJwt, async (request, response) => {
   // validate model
   const { error: errorValidation } = vldtTodoEditReminder(request.query);
@@ -679,6 +679,11 @@ rtTodo.get('/reminder/:id', rtFtJwt, async (request, response) => {
   } catch (error) {
     return resException(error, response);
   }
+});
+
+// change work date
+rtTodo.post('/workdate/:id', rtFtJwt, async (request, response) => {
+  // validate model
 });
 
 export default rtTodo;

@@ -2,13 +2,13 @@ import moment from 'moment';
 
 import UserPushNotificationSubscription from '../Models/mdlUserPushNotificationSubscription';
 import { resPushNotification } from '../Responses/resPushNotificaition';
-import { constructSubscriptionObject } from '../Utilities/utlType';
+import { constructSubscriptionObject, makeEllipsis } from '../Utilities/utlType';
 
 const crnReminder = async () => {
-  // get current time
-  const now = moment().toDate();
+  // get last 30 seconds
+  const last30Seconds = moment().add(-30, 'seconds').toDate();
 
-  // get last minute
+  // get next 30 seconds
   const next30Seconds = moment().add(30, 'seconds').toDate();
 
   // get user's reminder
@@ -18,7 +18,7 @@ const crnReminder = async () => {
     { $unwind: '$user.todo_reminders' },
     { $lookup: { from: 'todos', localField: 'user.todo_reminders.todo', foreignField: '_id', as: 'user.todo_reminders.todo' } },
     { $unwind: '$user.todo_reminders.todo' },
-    { $match: { $and: [{ 'user.todo_reminders.remind_date': { $gte: now } }, { 'user.todo_reminders.remind_date': { $lte: next30Seconds } }] } },
+    { $match: { $and: [{ 'user.todo_reminders.remind_date': { $gte: last30Seconds } }, { 'user.todo_reminders.remind_date': { $lte: next30Seconds } }] } },
     { $group: { _id: { _id: '$_id', endpoint: '$endpoint', p256dh: '$p256dh', auth: '$auth', userName: '$user.name' }, reminders: { $push: '$user.todo_reminders' } } },
     { $project: { _id: 1, reminders: { todo: { description: 1 } } } },
   ]);
@@ -29,7 +29,12 @@ const crnReminder = async () => {
     const subscription = constructSubscriptionObject(repoUserPushNotificationSubscription._id);
 
     // construct notification payload
-    const payload = { title: `${repoUserPushNotificationSubscription._id.userName}, you have a reminder(s)`, body: repoUserPushNotificationSubscription.reminders.map((reminder) => reminder.todo.description).join(';') };
+    const payload = {
+      // {name}, you have To Do to complete
+      title: `${repoUserPushNotificationSubscription._id.userName.split(' ')[0]}, you have To Do to complete`,
+      // {ellipsis(description1)}; {ellipsis(description2)}; ...
+      body: repoUserPushNotificationSubscription.reminders.map((reminder) => makeEllipsis(reminder.todo.description)).join('; '),
+    };
 
     // send notification
     resPushNotification(subscription, payload);

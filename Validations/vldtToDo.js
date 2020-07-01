@@ -26,9 +26,15 @@ export const vldtTodoComment = (data) =>
     mentionedUsers: Joi.array().items().optional(),
   }).validate(data);
 
-// edit reminder
+// change reminder
 export const vldtTodoEditReminder = (data) =>
   Joi.object({
     is_removing: Joi.bool().optional(),
     remind_date: Joi.date().iso().optional().allow(''),
+  }).validate(data);
+
+export const vldtTodoChangeWorkDate = (data) =>
+  Joi.object({
+    date_start: Joi.date().iso().optional().allow(''),
+    date_end: Joi.date().iso().optional().allow(''),
   }).validate(data);

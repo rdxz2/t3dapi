@@ -3,7 +3,7 @@ import moment from 'moment';
 import mongoose from 'mongoose';
 import ProjectActivity from '../Models/mdlProjectActivitiy';
 import User from '../Models/mdlUser';
-import { resBase, resNotFound, resSingleValidationError } from '../Responses/resBase';
+import { resBase, resNotFound, resSingleValidationError, resTable } from '../Responses/resBase';
 import rtFtJwt from '../RouteFilters/rtFtJwt';
 import { calculateSkipValue } from '../Utilities/utlType';
 import { toInteger } from 'lodash';
@@ -92,7 +92,7 @@ rtUser.get('/recentactivities', rtFtJwt, async (request, response) => {
   const repoProjectActivitiesCount = await ProjectActivity.countDocuments(filter);
   const repoProjectActivities = await ProjectActivity.find(filter).sort('-create_date').skip(calculateSkipValue(pageSize, currentPage)).limit(pageSize).populate('actor', 'name').select('-__v');
 
-  return resBase(repoProjectActivities, repoProjectActivitiesCount, response);
+  return resTable(repoProjectActivities, repoProjectActivitiesCount, response);
 });
 
 // calendar schedules
