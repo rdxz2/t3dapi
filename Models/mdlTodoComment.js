@@ -27,6 +27,14 @@ const scmTodoComment = new Schema({
     ref: 'User',
     required: true,
   },
+  // fk: User
+  mentionedUsers: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+  ],
 });
 
 const TodoComment = model('TodoComment', scmTodoComment, 'todo_comments');

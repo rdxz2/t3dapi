@@ -1,4 +1,4 @@
-import { Router, request, response } from 'express';
+import { Router } from 'express';
 import { toInteger } from 'lodash';
 import moment from 'moment';
 
@@ -578,6 +578,7 @@ rtTodo.post('/comment/:id', rtFtJwt, async (request, response) => {
     parent: request.body.parent,
     todo: repoTodo._id,
     commenter: request.user.id,
+    mentionedUsers: request.body.mentionedUsers,
   });
 
   // make db model: project activity
@@ -618,6 +619,6 @@ rtTodo.post('/comment/:id', rtFtJwt, async (request, response) => {
 });
 
 // create reminder
-rtTodo.post('/remider/:id', rtFtJwt, async (request, response) => {});
+rtTodo.post('/reminder/:id', rtFtJwt, async (request, response) => {});
 
 export default rtTodo;

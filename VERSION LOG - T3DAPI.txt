@@ -1,3 +1,6 @@
+v0.1.14
+	+ to do comments can mention other people
+
 v0.1.13
 	+ push notification subscribe & unsubscribe functions + save/delete user subscription data in database
 
