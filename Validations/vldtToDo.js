@@ -35,6 +35,6 @@ export const vldtTodoEditReminder = (data) =>
 
 export const vldtTodoChangeWorkDate = (data) =>
   Joi.object({
-    date_start: Joi.date().iso().optional().allow(''),
-    date_end: Joi.date().iso().optional().allow(''),
+    dateStart: Joi.date().iso().optional().allow(''),
+    dateEnd: Joi.date().iso().optional().allow(''),
   }).validate(data);

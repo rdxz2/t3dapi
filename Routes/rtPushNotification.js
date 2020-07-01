@@ -16,7 +16,7 @@ rtPushNotification.post('/subscribe', rtFtJwt, async (request, response) => {
   const subscription = request.body.subscription;
 
   // remove all user push notifications
-  await UserPushNotificationSubscription.remove({ user: request.user.id });
+  await UserPushNotificationSubscription.deleteMany({ user: request.user.id });
 
   // search user push notification
   let tbuRepoUserPushNotificaitonSubscription = await UserPushNotificationSubscription.findOne({ _id: request.user.id });
@@ -54,7 +54,7 @@ rtPushNotification.post('/subscribe', rtFtJwt, async (request, response) => {
 // unsubscribe
 rtPushNotification.post('/unsubscribe', rtFtJwt, async (request, response) => {
   // remove all user push notifications
-  await UserPushNotificationSubscription.remove({ user: request.user.id });
+  await UserPushNotificationSubscription.deleteMany({ user: request.user.id });
 
   return resBase('unsubscribed', response);
 });

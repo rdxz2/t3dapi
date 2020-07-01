@@ -11,6 +11,7 @@ const TODO = {
     EDIT_DESCRIPTION: 'edit_desc',
     EDIT_DETAIL: 'edit_detail',
     EDIT_PRIORITY: 'edit_prio',
+    EDIT_WORKDATE: 'edit_workdate',
     // marking
     MARK_COMPLETED: 'mark_complete',
     UNMARK_COMPLETED: 'unmark_complete',

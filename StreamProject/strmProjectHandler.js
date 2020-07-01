@@ -155,6 +155,19 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
     }
   }
 
+  // client changing to do work date
+  async function handleTodoWorkDateEditing(data = { projectCode: '' }, callback) {
+    try {
+      // search project room
+      const selectedProjectRoom = await projectRoomManager.getProjectRoomByCode(data.projectCode);
+
+      // broadcast commented to do
+      selectedProjectRoom.broadcastTodoWorkDateEdited(client, data);
+    } catch (error) {
+      callback(error);
+    }
+  }
+
   // client marking to do as completed
 
   // client marking to do as important
@@ -187,6 +200,7 @@ const makeStrmProjectHandler = (client, projectRoomManager) => {
     handleTodoDetailEditing,
     handleTodoPriorityEditing,
     handleTodoCommenting,
+    handleTodoWorkDateEditing,
   };
 };
 
