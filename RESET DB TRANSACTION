@@ -1,0 +1,9 @@
+use t3d;
+db.projects.remove({});
+db.project_activities.remove({});
+db.users.remove({});
+db.user_push_notification_subscriptions.remove({});
+db.user_refresh_tokens.remove({});
+db.todos.remove({});
+db.todo_commentss.remove({});
+db.todo_reminders.remove({});

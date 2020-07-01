@@ -4,7 +4,7 @@ import moment from 'moment';
 import Project from '../Models/mdlProject';
 import ProjectActivity from '../Models/mdlProjectActivitiy';
 import User from '../Models/mdlUser';
-import { resBase, resException, resNotFound, resValidationError, resIsExist, resSingleValidationError } from '../Responses/resBase';
+import { resBase, resException, resNotFound, resValidationError, resIsExist, resSingleValidationError, resTable } from '../Responses/resBase';
 import rtftJwt from '../RouteFilters/rtFtJwt';
 import { vldtProjectCreate, vldtProjectEdit } from '../Validations/vldtProject';
 import PROJECT from '../Constants/PROJECT';
@@ -155,7 +155,7 @@ rtProject.put('/:projectCode', rtftJwt, async (request, response) => {
 
   // search for project
   const tbuRepoProject = await Project.findOne({ $and: [{ code: request.params.projectCode }, { author: request.user.id }] });
-  if (!tbuRepoProject) return resNotFound(`project ${request.params.projectCode}`, response);
+  if (!tbuRepoProject) return resNotFound(`project '${request.params.projectCode}'`, response);
 
   // make sure author is available
   const repoUserAuthor = await User.findOne({ _id: request.user.id });
@@ -307,14 +307,14 @@ rtProject.get('/activities/:projectCode', rtftJwt, async (request, response) => 
   // map project activities
   const projectActivities = repoProject.paginatedData[0] ? repoProject.paginatedData[0].activities.map((projectActivity) => projectActivity) : [];
 
-  return resBase({ projectActivitiesTotalData: repoProject.allData.count || 0, projectActivities }, response);
+  return resTable(projectActivities, repoProject.allData.count || 0, response);
 });
 
 // get collaborators
 rtProject.get('/collaborators/:projectCode', rtftJwt, async (request, response) => {
   // search project
   const repoProject = await Project.findOne({ code: request.params.projectCode }).select('-_id collaborators').populate('collaborators', 'name').populate('author', 'name');
-  if (!repoProject) return resNotFound(`project ${request.params.projectCode}`, response);
+  if (!repoProject) return resNotFound(`project '${request.params.projectCode}'`, response);
 
   // get collaborator names
   const collaborators = repoProject.collaborators.map((collaborator) => ({ id: collaborator._id, name: collaborator.name }));

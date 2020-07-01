@@ -1,6 +1,6 @@
 const SECURITY = {
   // jwt age: 5 minutes
-  JWT_AGE: 60 * 5 * 1,
+  JWT_AGE: 60 * 100 * 1,
   // refresh token age: 12 hours
   REFRESHTOKEN_AGE: 12,
 };

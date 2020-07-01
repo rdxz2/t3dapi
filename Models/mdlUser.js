@@ -43,6 +43,20 @@ const scmUser = new Schema({
     required: true,
     ref: 'Position',
   },
+  // fk: Todo[]
+  todo_reminders: [
+    {
+      todo: {
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: 'Todo',
+      },
+      remind_date: {
+        type: Date,
+        required: true,
+      },
+    },
+  ],
   // fk: Project[]
   projects: [
     {

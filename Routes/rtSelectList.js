@@ -48,7 +48,7 @@ rtSelectList.post('/user', [rtFtJwt, rtFtSelectList], async (request, response) 
 rtSelectList.post('/projectuser/:projectCode', [rtFtJwt, rtFtSelectList], async (request, response) => {
   // search project
   const repoProject = await Project.findOne({ code: request.params.projectCode }).populate('collaborators', 'name').select();
-  if (!repoProject) return resNotFound(`project ${request.params.projectCode}`, response);
+  if (!repoProject) return resNotFound(`project '${request.params.projectCode}'`, response);
 
   // get collaborators
   const collaborators = repoProject.collaborators.map((collaborator) => ({ id: collaborator.id, name: collaborator.name }));

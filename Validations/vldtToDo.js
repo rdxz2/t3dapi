@@ -25,3 +25,10 @@ export const vldtTodoComment = (data) =>
     parent: Joi.number().optional(),
     mentionedUsers: Joi.array().items().optional(),
   }).validate(data);
+
+// edit reminder
+export const vldtTodoEditReminder = (data) =>
+  Joi.object({
+    is_removing: Joi.bool().optional(),
+    remind_date: Joi.date().iso().optional().allow(''),
+  }).validate(data);

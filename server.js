@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import webpush from 'web-push';
 import { Server } from 'http';
+import cron from 'node-cron';
 import makeStrmProjectHandler from './StreamProject/strmProjectHandler';
 import mongoose from 'mongoose';
 
@@ -151,6 +152,14 @@ io.on('connection', (client) => {
   });
 
   // END -- PREDEFINED LISTENERS
+
+  // START -- REGISTER CRON JOBS
+
+  cron.schedule('* * * * *', function () {
+    console.log('running a task every minute');
+  });
+
+  // END -- REGISTER CRON JOBS
 });
 
 // END -- PROJECT STREAMING FUNCTIONALITY

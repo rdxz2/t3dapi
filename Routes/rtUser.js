@@ -92,7 +92,7 @@ rtUser.get('/recentactivities', rtFtJwt, async (request, response) => {
   const repoProjectActivitiesCount = await ProjectActivity.countDocuments(filter);
   const repoProjectActivities = await ProjectActivity.find(filter).sort('-create_date').skip(calculateSkipValue(pageSize, currentPage)).limit(pageSize).populate('actor', 'name').select('-__v');
 
-  return resBase({ projectActivitiesTotalData: repoProjectActivitiesCount, projectActivities: repoProjectActivities }, response);
+  return resBase(repoProjectActivities, repoProjectActivitiesCount, response);
 });
 
 // calendar schedules

@@ -23,6 +23,9 @@ export const resBase = (data, response, statusCode = HTTPSTATUS.OK) => {
   response.end();
 };
 
+// table response
+export const resTable = (data, totalDataFiltered, response) => resBase({ data, totalDataFiltered }, response);
+
 // not authorized
 export const resUnauthorized = (response) => resBase('you are not authorized..', response, HTTPSTATUS.UNAUTHORIZED);
 

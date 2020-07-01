@@ -1,14 +1,14 @@
 import { Router } from 'express';
 import { toInteger } from 'lodash';
 import moment from 'moment';
-
 import TODO from '../Constants/TODO';
 import Project from '../Models/mdlProject';
 import ProjectActivity from '../Models/mdlProjectActivitiy';
 import Todo from '../Models/mdlTodo';
-import { resBase, resException, resNotFound, resValidationError, resSingleValidationError } from '../Responses/resBase';
+import mongoose from 'mongoose';
+import { resBase, resException, resNotFound, resValidationError, resSingleValidationError, resTable } from '../Responses/resBase';
 import rtFtJwt from '../RouteFilters/rtFtJwt';
-import { vldtTodoCreate, vldtTodoEditDescription, vldtTodoEditTags, vldtTodoComment } from '../Validations/vldtTodo';
+import { vldtTodoCreate, vldtTodoEditDescription, vldtTodoEditTags, vldtTodoComment, vldtTodoEditReminder } from '../Validations/vldtTodo';
 import User from '../Models/mdlUser';
 import { convertObjectValueToArray, calculateSkipValue } from '../Utilities/utlType';
 import TodoComment from '../Models/mdlTodoComment';
@@ -19,7 +19,7 @@ const rtTodo = Router();
 rtTodo.get('/:projectCode', rtFtJwt, async (request, response) => {
   // search to do
   const repoProject = await Project.findOne({ code: request.params.projectCode }).select('_id');
-  if (!repoProject) return resNotFound(`project ${request.params.projectCode}`, response);
+  if (!repoProject) return resNotFound(`project '${request.params.projectCode}'`, response);
 
   // search to do for this project
   const repoTodos = await Todo.find({ project: repoProject._id, description: { $regex: request.query.search || '', $options: 'i' } })
@@ -41,11 +41,27 @@ rtTodo.get('/:projectCode', rtFtJwt, async (request, response) => {
 // get one (detail)
 rtTodo.get('/detail/:id', rtFtJwt, async (request, response) => {
   // search to do
-  const repoTodo = await Todo.findOne({ _id: request.params.id }).populate('project', 'code').populate('creator', 'name');
+  const repoTodo = await Todo.findOne({ _id: request.params.id }).populate('project', 'code author collaborators ').populate('project.collaborators').populate('creator', 'name');
   if (!repoTodo) return resNotFound('to do', response);
+
+  // make sure this user has access to to do's project
+  if (repoTodo.project.author.toString() !== request.user.id && !repoTodo.project.collaborators.map((collaborator) => collaborator._id).includes(request.user.id)) return resNotFound('to do', response);
+
+  // search user for to do reminder
+  const repoUser = await User.aggregate([
+    {
+      $match: { _id: mongoose.Types.ObjectId(request.user.id) },
+    },
+    { $unwind: '$todo_reminders' },
+    { $match: { 'todo_reminders.todo': repoTodo._id } },
+    { $project: { todo_reminders: { remind_date: 1 } } },
+  ]);
 
   // search comments
   const repoTodoComments = await TodoComment.find({ todo: repoTodo._id }).populate('commenter', 'name').select('description create_date');
+
+  // get reminder date
+  const remindDate = repoUser.length > 0 ? repoUser[0].todo_reminders.remind_date : null;
 
   return resBase(
     {
@@ -60,6 +76,7 @@ rtTodo.get('/detail/:id', rtFtJwt, async (request, response) => {
       is_important: repoTodo.is_important,
       priority: repoTodo.priority,
       tags: repoTodo.tags,
+      remind_date: remindDate,
       comments: repoTodoComments,
       create_date: repoTodo.create_date,
       update_date: repoTodo.update_date,
@@ -83,7 +100,7 @@ rtTodo.get('/activities/:id', rtFtJwt, async (request, response) => {
   const repoProjectActivitiesCount = await ProjectActivity.countDocuments(filter);
   const repoProjectActivities = await ProjectActivity.find(filter).sort('-create_date').skip(calculateSkipValue(pageSize, currentPage)).limit(pageSize).populate('actor', 'name');
 
-  return resBase({ projectActivitiesTotalData: repoProjectActivitiesCount, projectActivities: repoProjectActivities }, response);
+  return resTable(repoProjectActivities, repoProjectActivitiesCount, response);
 });
 
 // create
@@ -94,7 +111,7 @@ rtTodo.post('/:projectCode', rtFtJwt, async (request, response) => {
 
   // make sure project is exist
   const tblRepoProject = await Project.findOne({ code: request.params.projectCode, is_active: true }).select('_id');
-  if (!tblRepoProject) return resNotFound(`project ${request.params.projectCode}`, response);
+  if (!tblRepoProject) return resNotFound(`project '${request.params.projectCode}'`, response);
 
   // get user
   const repoUser = await User.findOne({ _id: request.user.id }).select('name');
@@ -619,6 +636,48 @@ rtTodo.post('/comment/:id', rtFtJwt, async (request, response) => {
 });
 
 // create reminder
-rtTodo.post('/reminder/:id', rtFtJwt, async (request, response) => {});
+rtTodo.get('/reminder/:id', rtFtJwt, async (request, response) => {
+  // validate model
+  const { error: errorValidation } = vldtTodoEditReminder(request.query);
+  if (errorValidation) return resValidationError(errorValidation, response);
+
+  // convert query string to boolean
+  const isRemoving = request.query.is_removing === 'true';
+
+  // validate model (2)
+  if (!isRemoving && !request.query.remind_date) return resSingleValidationError('remind date', response);
+
+  // search to do
+  const repoTodo = await Todo.findOne({ _id: request.params.id }).select('update_date');
+  if (!repoTodo) return resNotFound('to do', response);
+
+  // search user
+  const tbuRepoUser = await User.findOne({ _id: request.user.id }).select('name todo_reminders');
+  if (!tbuRepoUser) return resNotFound('user', response);
+
+  // update db model: user
+
+  // remove current existing reminder for to do
+  const repoTodoId = repoTodo._id.toString();
+  const tbdRepoUserTodoReminderIndex = tbuRepoUser.todo_reminders.findIndex((todoReminder) => todoReminder.todo.toString() === repoTodoId);
+  if (tbdRepoUserTodoReminderIndex > -1) tbuRepoUser.todo_reminders.splice(tbdRepoUserTodoReminderIndex, 1);
+
+  // add a new reminder
+  if (!isRemoving) {
+    tbuRepoUser.todo_reminders.push({
+      todo: repoTodo._id,
+      remind_date: request.query.remind_date,
+    });
+  }
+
+  try {
+    // save user
+    await tbuRepoUser.save();
+
+    return resBase({ todo: repoTodo._id, remind_date: request.query.remind_date }, response);
+  } catch (error) {
+    return resException(error, response);
+  }
+});
 
 export default rtTodo;

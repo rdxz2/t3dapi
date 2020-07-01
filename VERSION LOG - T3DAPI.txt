@@ -1,3 +1,8 @@
+v0.1.15
+	+ resTable
+	^ all project activities is using res table
+	+ to do reminder input/remove
+
 v0.1.14
 	+ to do comments can mention other people
 
