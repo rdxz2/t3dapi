@@ -19,6 +19,7 @@ import socketIo from 'socket.io';
 // import StrmProjectClientManager from './StreamProject/strmProjectClientManager';
 import StrmProjectProjectRoomManager from './StreamProject/strmProjectProjectRoomManager';
 import rtPushNotification from './Routes/rtPushNotification';
+import crnReminder from './Crons/crnReminder';
 
 // initialize express app
 const app = express();
@@ -155,9 +156,8 @@ io.on('connection', (client) => {
 
   // START -- REGISTER CRON JOBS
 
-  cron.schedule('* * * * *', function () {
-    console.log('running a task every minute');
-  });
+  // reminders
+  cron.schedule('* * * * *', crnReminder);
 
   // END -- REGISTER CRON JOBS
 });

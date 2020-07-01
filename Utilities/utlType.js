@@ -29,6 +29,15 @@ export const convertObjectValueToArray = (input) => {
   return values;
 };
 
+// construct subscription object from user push notification subscription repository
+export const constructSubscriptionObject = (repoPushSubscription = {}) => ({
+  endpoint: repoPushSubscription.endpoint,
+  keys: {
+    p256dh: repoPushSubscription.p256dh,
+    auth: repoPushSubscription.auth,
+  },
+});
+
 // END -- OBJECT
 
 // START -- ARRAY

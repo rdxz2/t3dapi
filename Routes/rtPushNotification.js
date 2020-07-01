@@ -1,9 +1,8 @@
-import { Router, response } from 'express';
+import { Router } from 'express';
 
-import { resBase, resException } from '../Responses/resBase';
-import { resPushNotification } from '../Responses/resPushNotificaition';
-import rtFtJwt from '../RouteFilters/rtFtJwt';
 import UserPushNotificationSubscription from '../Models/mdlUserPushNotificationSubscription';
+import { resBase, resException } from '../Responses/resBase';
+import rtFtJwt from '../RouteFilters/rtFtJwt';
 
 const rtPushNotification = Router();
 
@@ -15,6 +14,9 @@ rtPushNotification.get('/vapid', rtFtJwt, (request, response) => {
 // subscribe
 rtPushNotification.post('/subscribe', rtFtJwt, async (request, response) => {
   const subscription = request.body.subscription;
+
+  // remove all user push notifications
+  await UserPushNotificationSubscription.remove({ user: request.user.id });
 
   // search user push notification
   let tbuRepoUserPushNotificaitonSubscription = await UserPushNotificationSubscription.findOne({ _id: request.user.id });
@@ -51,8 +53,8 @@ rtPushNotification.post('/subscribe', rtFtJwt, async (request, response) => {
 
 // unsubscribe
 rtPushNotification.post('/unsubscribe', rtFtJwt, async (request, response) => {
-  // search and delete user push notification
-  await UserPushNotificationSubscription.deleteOne({ _id: request.user.id });
+  // remove all user push notifications
+  await UserPushNotificationSubscription.remove({ user: request.user.id });
 
   return resBase('unsubscribed', response);
 });

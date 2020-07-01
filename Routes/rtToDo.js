@@ -1,17 +1,18 @@
 import { Router } from 'express';
 import { toInteger } from 'lodash';
 import moment from 'moment';
+import mongoose from 'mongoose';
+
 import TODO from '../Constants/TODO';
 import Project from '../Models/mdlProject';
 import ProjectActivity from '../Models/mdlProjectActivitiy';
 import Todo from '../Models/mdlTodo';
-import mongoose from 'mongoose';
-import { resBase, resException, resNotFound, resValidationError, resSingleValidationError, resTable } from '../Responses/resBase';
-import rtFtJwt from '../RouteFilters/rtFtJwt';
-import { vldtTodoCreate, vldtTodoEditDescription, vldtTodoEditTags, vldtTodoComment, vldtTodoEditReminder } from '../Validations/vldtTodo';
-import User from '../Models/mdlUser';
-import { convertObjectValueToArray, calculateSkipValue } from '../Utilities/utlType';
 import TodoComment from '../Models/mdlTodoComment';
+import User from '../Models/mdlUser';
+import { resBase, resException, resNotFound, resSingleValidationError, resTable, resValidationError } from '../Responses/resBase';
+import rtFtJwt from '../RouteFilters/rtFtJwt';
+import { calculateSkipValue, convertObjectValueToArray } from '../Utilities/utlType';
+import { vldtTodoComment, vldtTodoCreate, vldtTodoEditDescription, vldtTodoEditReminder, vldtTodoEditTags } from '../Validations/vldtTodo';
 
 const rtTodo = Router();
 
