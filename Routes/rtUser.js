@@ -96,8 +96,42 @@ rtUser.get('/recentactivities', rtFtJwt, async (request, response) => {
 });
 
 // calendar schedules
-rtUser.get('/schedule', rtFtJwt, (request, response) => {
-  return resBase([], response);
+rtUser.get('/schedule', rtFtJwt, async (request, response) => {
+  // construct start date and end date
+  const requestedDate = moment(request.query.date);
+  const startDate = moment(requestedDate).startOf('month').toDate();
+  const endDate = moment(requestedDate).endOf('month').toDate();
+
+  // search for schedule
+  const repoUser = await User.aggregate([
+    // search user id
+    { $match: { _id: mongoose.Types.ObjectId(request.user.id) } },
+    // explode todo reminders
+    { $unwind: '$todo_reminders' },
+    // filter remind date by start date and end date
+    { $match: { $and: [{ 'todo_reminders.remind_date': { $gte: startDate } }, { 'todo_reminders.remind_date': { $lte: endDate } }] } },
+    // join to todo
+    { $lookup: { from: 'todos', foreignField: '_id', localField: 'todo_reminders.todo', as: 'todo_reminders.todo' } },
+    // explode the joined todo
+    { $unwind: '$todo_reminders.todo' },
+    // group by id
+    { $group: { _id: '$_id', reminders: { $push: '$todo_reminders' } } },
+    // select
+    { $project: { _id: 1, reminders: { remind_date: 1, todo: { description: 1, priority: 1, is_important: 1 } } } },
+  ]);
+
+  // map result to viewmodel
+  const viewmodel =
+    repoUser.length > 0
+      ? repoUser[0].reminders.map((reminder) => ({
+          description: reminder.todo.description,
+          is_important: reminder.todo.is_important,
+          priority: reminder.todo.priority,
+          date: reminder.remind_date,
+        }))
+      : [];
+
+  return resBase(viewmodel, response);
 });
 
 // notifications
