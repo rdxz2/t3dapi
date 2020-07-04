@@ -1,5 +1,4 @@
 {
-  "version": "0.2.0",
   "configurations": [
     {
       "type": "node",
@@ -9,10 +8,7 @@
       "program": "${workspaceFolder}/start.js",
       "restart": true,
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "env": {
-        "debug": "app:*"
-      }
+      "internalConsoleOptions": "neverOpen"
     }
   ]
 }

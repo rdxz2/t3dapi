@@ -93,6 +93,11 @@ class StrmProjectProjectRoom {
     this._broadcastToAllClients(clientSender, 'todo_commented', data);
   }
 
+  // to do work date edited
+  broadcastTodoWorkDateEdited(clientSender, data) {
+    this._broadcastToAllClients(clientSender, 'todoworkdate_edited', data);
+  }
+
   // broadcast something to all client in this room
   // // except the sender
   _broadcastToAllClients(clientSender, emitName, data) {

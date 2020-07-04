@@ -12,7 +12,7 @@ import User from '../Models/mdlUser';
 import { resBase, resException, resNotFound, resSingleValidationError, resTable, resValidationError } from '../Responses/resBase';
 import rtFtJwt from '../RouteFilters/rtFtJwt';
 import { calculateSkipValue, convertObjectValueToArray } from '../Utilities/utlType';
-import { vldtTodoComment, vldtTodoCreate, vldtTodoEditDescription, vldtTodoEditReminder, vldtTodoEditTags } from '../Validations/vldtTodo';
+import { vldtTodoComment, vldtTodoCreate, vldtTodoEditDescription, vldtTodoEditReminder as vldtTodoChangeReminder, vldtTodoEditTags, vldtTodoChangeWorkDate } from '../Validations/vldtTodo';
 
 const rtTodo = Router();
 
@@ -31,8 +31,8 @@ rtTodo.get('/:projectCode', rtFtJwt, async (request, response) => {
   const repoTodosRemapped = repoTodos.map((repoTodo) => ({
     id: repoTodo._id,
     description: repoTodo.description,
-    is_completed: repoTodo.is_completed,
-    is_important: repoTodo.is_important,
+    isCompleted: repoTodo.is_completed,
+    isImportant: repoTodo.is_important,
     priority: repoTodo.priority,
   }));
 
@@ -42,7 +42,7 @@ rtTodo.get('/:projectCode', rtFtJwt, async (request, response) => {
 // get one (detail)
 rtTodo.get('/detail/:id', rtFtJwt, async (request, response) => {
   // search to do
-  const repoTodo = await Todo.findOne({ _id: request.params.id }).populate('project', 'code author collaborators ').populate('project.collaborators').populate('creator', 'name');
+  const repoTodo = await Todo.findOne({ _id: request.params.id }).populate('project', 'code author collaborators').populate('project.collaborators').populate('creator', 'name');
   if (!repoTodo) return resNotFound('to do', response);
 
   // make sure this user has access to to do's project
@@ -72,13 +72,15 @@ rtTodo.get('/detail/:id', rtFtJwt, async (request, response) => {
       creatorName: repoTodo.creator.name,
       description: repoTodo.description,
       detail: repoTodo.detail,
-      is_completed: repoTodo.is_completed,
-      is_active: repoTodo.is_active,
-      is_important: repoTodo.is_important,
+      isCompleted: repoTodo.is_completed,
+      isImportant: repoTodo.is_important,
       priority: repoTodo.priority,
       tags: repoTodo.tags,
       remind_date: remindDate,
       comments: repoTodoComments,
+      dateStart: repoTodo.date_start,
+      dateEnd: repoTodo.date_end,
+      is_active: repoTodo.is_active,
       create_date: repoTodo.create_date,
       update_date: repoTodo.update_date,
     },
@@ -181,7 +183,7 @@ rtTodo.get('/complete/:id', rtFtJwt, async (request, response) => {
   const now = moment();
 
   // convert query to boolean
-  const isCompleted = request.query.is_completed === 'true';
+  const isCompleted = request.query.isCompleted === 'true';
 
   // update db model: to do
   tbuRepoTodo.is_completed = isCompleted;
@@ -206,7 +208,7 @@ rtTodo.get('/complete/:id', rtFtJwt, async (request, response) => {
 
     return resBase(
       {
-        todo: { id: tbuRepoTodoSaved._id, is_completed: tbuRepoTodoSaved.is_completed },
+        todo: { id: tbuRepoTodoSaved._id, isCompleted: tbuRepoTodoSaved.is_completed },
         activity: {
           todo: tbiRepoProjectActivitySaved.todo,
           todo_action: tbiRepoProjectActivitySaved.todo_action,
@@ -236,7 +238,7 @@ rtTodo.get('/important/:id', rtFtJwt, async (request, response) => {
   const now = moment();
 
   // convert query to boolean
-  const isImportant = request.query.is_important === 'true';
+  const isImportant = request.query.isImportant === 'true';
 
   // update db model: to do
   tbuRepoTodo.is_important = isImportant;
@@ -261,7 +263,7 @@ rtTodo.get('/important/:id', rtFtJwt, async (request, response) => {
 
     return resBase(
       {
-        todo: { id: tbuRepoTodoSaved._id, is_important: tbuRepoTodoSaved.is_important },
+        todo: { id: tbuRepoTodoSaved._id, isImportant: tbuRepoTodoSaved.is_important },
         activity: {
           todo: tbiRepoProjectActivitySaved.todo,
           todo_action: tbiRepoProjectActivitySaved.todo_action,
@@ -639,7 +641,7 @@ rtTodo.post('/comment/:id', rtFtJwt, async (request, response) => {
 // change reminder
 rtTodo.get('/reminder/:id', rtFtJwt, async (request, response) => {
   // validate model
-  const { error: errorValidation } = vldtTodoEditReminder(request.query);
+  const { error: errorValidation } = vldtTodoChangeReminder(request.query);
   if (errorValidation) return resValidationError(errorValidation, response);
 
   // convert query string to boolean
@@ -682,8 +684,64 @@ rtTodo.get('/reminder/:id', rtFtJwt, async (request, response) => {
 });
 
 // change work date
-rtTodo.post('/workdate/:id', rtFtJwt, async (request, response) => {
+rtTodo.put('/workdate/:id', rtFtJwt, async (request, response) => {
   // validate model
+  const { error: errorValidation } = vldtTodoChangeWorkDate(request.body);
+  if (errorValidation) return resValidationError(errorValidation, response);
+
+  // search to do
+  const tbuRepoTodo = await Todo.findOne({ _id: request.params.id }).select('description date_start date_end update_date');
+  if (!tbuRepoTodo) return resNotFound('to do', response);
+
+  // search user
+  const repoUser = await User.findOne({ _id: request.user.id }).select('name');
+  if (!repoUser) return resNotFound('user', response);
+
+  // get current time
+  const now = moment();
+
+  // update db model: to do
+  tbuRepoTodo.date_start = request.body.dateStart;
+  tbuRepoTodo.date_end = request.body.dateEnd;
+  tbuRepoTodo.update_date = now;
+
+  // make db model: project activity
+  const tbiRepoProjectActivity = new ProjectActivity({
+    // link to to do
+    todo: tbuRepoTodo._id,
+    todo_action: TODO.ACTION.EDIT_WORKDATE,
+    todo_description: tbuRepoTodo.description,
+    todo_date_start: request.body.dateStart,
+    todo_date_end: request.body.dateEnd,
+    // link to user
+    actor: request.user.id,
+  });
+
+  try {
+    // save to do
+    const tbuRepoTodoSaved = await tbuRepoTodo.save();
+
+    // save project activity
+    const tbuRepoProjectActivitySaved = await tbiRepoProjectActivity.save();
+
+    return resBase(
+      {
+        todo: { id: tbuRepoTodoSaved._id, date_start: tbuRepoTodoSaved.date_start, date_end: tbuRepoTodoSaved.date_end },
+        activity: {
+          todo: tbuRepoProjectActivitySaved.todo,
+          todo_action: tbuRepoProjectActivitySaved.todo_action,
+          todo_description: tbuRepoProjectActivitySaved.todo_description,
+          todo_date_start: tbuRepoProjectActivitySaved.todo_date_start,
+          todo_date_end: tbuRepoProjectActivitySaved.todo_date_end,
+          actor: repoUser,
+          create_date: tbuRepoProjectActivitySaved.create_date,
+        },
+      },
+      response
+    );
+  } catch (error) {
+    return resException(error, response);
+  }
 });
 
 export default rtTodo;

@@ -1,3 +1,6 @@
+v0.1.17
+	+ to do workdate + its activity & broadcast
+
 v0.1.16
 	+ cron for reminder every minute
 	+ reminder push notification

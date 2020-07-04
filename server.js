@@ -139,6 +139,9 @@ io.on('connection', (client) => {
   // to do commented
   client.on('todo_commenting', strmProjectHandler.handleTodoCommenting);
 
+  // to do work date edited
+  client.on('todoworkdate_editing', strmProjectHandler.handleTodoWorkDateEditing);
+
   // START -- PREDEFINED LISTENERS
 
   // client disonnected from this server

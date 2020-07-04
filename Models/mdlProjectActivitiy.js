@@ -64,6 +64,12 @@ const scmProjectActivity = new Schema({
     type: String,
     max: 100,
   },
+  todo_date_start: {
+    type: Date,
+  },
+  todo_date_end: {
+    type: Date,
+  },
   // fk: User
   actor: {
     type: Schema.Types.ObjectId,
