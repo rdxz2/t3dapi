@@ -1,3 +1,6 @@
+v0.1.18
+	+ get user's schedule
+
 v0.1.17
 	+ to do workdate + its activity & broadcast
 

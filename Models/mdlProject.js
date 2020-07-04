@@ -15,6 +15,9 @@ const scmProject = new Schema({
     type: String,
     max: 100,
   },
+  deadline: {
+    type: Date,
+  },
   create_date: {
     type: Date,
     default: Date.now,

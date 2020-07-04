@@ -75,6 +75,7 @@ rtProject.post('/', rtftJwt, async (request, response) => {
     code: request.body.code,
     name: request.body.name,
     description: request.body.description,
+    deadline: request.body.deadline,
     // link to user
     author: request.user.id,
     // link to users
@@ -87,7 +88,7 @@ rtProject.post('/', rtftJwt, async (request, response) => {
     project: tbiRepoProject._id,
     project_action: PROJECT.ACTION.CREATE,
     project_code: tbiRepoProject.code,
-    project_naem: tbiRepoProject.name,
+    project_name: tbiRepoProject.name,
     // link to user
     actor: request.user.id,
   });

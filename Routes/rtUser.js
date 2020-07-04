@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import moment from 'moment';
+import Project from '../Models/mdlProject';
 import mongoose from 'mongoose';
 import ProjectActivity from '../Models/mdlProjectActivitiy';
 import User from '../Models/mdlUser';
@@ -7,6 +8,7 @@ import { resBase, resNotFound, resSingleValidationError, resTable } from '../Res
 import rtFtJwt from '../RouteFilters/rtFtJwt';
 import { calculateSkipValue } from '../Utilities/utlType';
 import { toInteger } from 'lodash';
+import SCHEDULE_TYPE from '../Constants/SCHEDULE_TYPE';
 
 const rtUser = Router();
 
@@ -98,14 +100,44 @@ rtUser.get('/recentactivities', rtFtJwt, async (request, response) => {
 // calendar schedules
 rtUser.get('/schedule', rtFtJwt, async (request, response) => {
   // construct start date and end date
-  const requestedDate = moment(request.query.date);
-  const startDate = moment(requestedDate).startOf('month').toDate();
-  const endDate = moment(requestedDate).endOf('month').toDate();
+  const startDate = moment(request.query.date).startOf('month').toDate();
+  const endDate = moment(request.query.date).endOf('month').toDate();
 
-  // search for schedule
-  const repoUser = await User.aggregate([
+  const userId = mongoose.Types.ObjectId(request.user.id);
+
+  // search user's project todo deadlines
+  const repoProjects = await Project.aggregate([
     // search user id
-    { $match: { _id: mongoose.Types.ObjectId(request.user.id) } },
+    { $match: { $or: [{ author: userId }, { collaborators: userId }] } },
+    // join to todo
+    { $lookup: { from: 'todos', foreignField: 'project', localField: '_id', as: 'todos' } },
+    // explode joined todo
+    { $unwind: '$todos' },
+    // filter todo's end date by start date and end date
+    { $match: { $and: [{ 'todos.date_end': { $gte: startDate } }, { 'todos.date_end': { $lte: endDate } }] } },
+    // group back by project id
+    { $group: { _id: '$_id', todos: { $push: '$todos' } } },
+    // select
+    { $project: { _id: 1, todos: { description: 1, priority: 1, is_important: 1, date_start: 1 } } },
+  ]);
+
+  // map results to viewmodel
+  const userProjectsTodo = [].concat(
+    ...repoProjects.map((project) =>
+      project.todos.map((todo) => ({
+        description: todo.description,
+        isImportant: todo.is_important,
+        priority: todo.priority,
+        date: todo.date_start,
+        type: SCHEDULE_TYPE.TODO_DATEEND,
+      }))
+    )
+  );
+
+  // search user's reminders
+  const repoUsers = await User.aggregate([
+    // search user id
+    { $match: { _id: userId } },
     // explode todo reminders
     { $unwind: '$todo_reminders' },
     // filter remind date by start date and end date
@@ -114,24 +146,25 @@ rtUser.get('/schedule', rtFtJwt, async (request, response) => {
     { $lookup: { from: 'todos', foreignField: '_id', localField: 'todo_reminders.todo', as: 'todo_reminders.todo' } },
     // explode the joined todo
     { $unwind: '$todo_reminders.todo' },
-    // group by id
+    // group back by user id
     { $group: { _id: '$_id', reminders: { $push: '$todo_reminders' } } },
     // select
     { $project: { _id: 1, reminders: { remind_date: 1, todo: { description: 1, priority: 1, is_important: 1 } } } },
   ]);
 
-  // map result to viewmodel
-  const viewmodel =
-    repoUser.length > 0
-      ? repoUser[0].reminders.map((reminder) => ({
+  // map results to viewmodel
+  const userReminders =
+    repoUsers.length > 0
+      ? repoUsers[0].reminders.map((reminder) => ({
           description: reminder.todo.description,
-          is_important: reminder.todo.is_important,
+          isImportant: reminder.todo.is_important,
           priority: reminder.todo.priority,
           date: reminder.remind_date,
+          type: SCHEDULE_TYPE.TODO_REMINDER,
         }))
       : [];
 
-  return resBase(viewmodel, response);
+  return resBase(userReminders.concat(userProjectsTodo), response);
 });
 
 // notifications

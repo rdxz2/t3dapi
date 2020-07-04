@@ -6,6 +6,7 @@ export const vldtProjectCreate = (data) =>
     code: Joi.string().max(5).required(),
     name: Joi.string().max(100).required(),
     description: Joi.string().max(100).allow('').optional(),
+    deadline: Joi.date().allow('').optional(),
     collaborators: Joi.array().optional(),
   }).validate(data);
 
@@ -15,5 +16,6 @@ export const vldtProjectEdit = (data) =>
     code: Joi.string().max(5).required(),
     name: Joi.string().max(100).required(),
     description: Joi.string().max(100).allow('').optional(),
+    deadline: Joi.date().allow('').optional(),
     collaborators: Joi.array().optional(),
   }).validate(data);
