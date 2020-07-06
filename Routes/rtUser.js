@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, request } from 'express';
 import moment from 'moment';
 import Project from '../Models/mdlProject';
 import mongoose from 'mongoose';
@@ -167,18 +167,27 @@ rtUser.get('/schedule', rtFtJwt, async (request, response) => {
   return resBase(userReminders.concat(userProjectsTodo), response);
 });
 
+// profile (full)
+rtUser.get('/profile', rtFtJwt, async (request, response) => {
+  // search user
+  const repoUser = await User.findOne({ _id: request.user.id }).populate('department', 'name').populate('position', 'name');
+  if (!repoUser) return resNotFound('user', response);
+
+  return resBase(repoUser, response);
+});
+
 // notifications
-rtUser.get('/notifications', rtFtJwt, (request, response) => {
+rtUser.get('/notifications', rtFtJwt, async (request, response) => {
   return resBase([], response);
 });
 
 // get preferences
-rtUser.get('/preferences', rtFtJwt, (request, response) => {
+rtUser.get('/preferences', rtFtJwt, async (request, response) => {
   return resBase('not implemented', response);
 });
 
 // set preferences
-rtUser.post('/preferences', rtFtJwt, (request, response) => {
+rtUser.post('/preferences', rtFtJwt, async (request, response) => {
   return resBase('not implemented', response);
 });
 
