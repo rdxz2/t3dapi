@@ -1,25 +1,24 @@
-import { json, urlencoded } from 'body-parser';
+import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
-import webpush from 'web-push';
 import { Server } from 'http';
-import cron from 'node-cron';
-import makeStrmProjectHandler from './StreamProject/strmProjectHandler';
 import mongoose from 'mongoose';
+import cron from 'node-cron';
+import socketIo from 'socket.io';
+import webpush from 'web-push';
 
-import { resNotFound, resException } from './Responses/resBase';
+import crnReminder from './Crons/crnReminder';
+import { resException, resNotFound } from './Responses/resBase';
 import rtAuthentication from './Routes/rtAuthentication';
 import rtBase from './Routes/rtBase';
-import rtSelectList from './Routes/rtSelectList';
-import rtUser from './Routes/rtUser';
 import rtProject from './Routes/rtProject';
-import rtTodo from './Routes/rtTodo';
-import socketIo from 'socket.io';
-// import StrmProjectClientManager from './StreamProject/strmProjectClientManager';
-import StrmProjectProjectRoomManager from './StreamProject/strmProjectProjectRoomManager';
 import rtPushNotification from './Routes/rtPushNotification';
-import crnReminder from './Crons/crnReminder';
+import rtSelectList from './Routes/rtSelectList';
+import rtTodo from './Routes/rtTodo';
+import rtUser from './Routes/rtUser';
+import makeStrmProjectHandler from './StreamProject/strmProjectHandler';
+import StrmProjectProjectRoomManager from './StreamProject/strmProjectProjectRoomManager';
 
 // initialize express app
 const app = express();
@@ -60,8 +59,9 @@ app.use(
 );
 
 // data parser
-app.use(urlencoded({ extended: true }));
-app.use(json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+// app.use(express.static('public'));
 
 // START -- ROUTES
 

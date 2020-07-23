@@ -1,19 +1,41 @@
-import { Router, request } from 'express';
+import { Router } from 'express';
+import fs from 'fs';
+import { toInteger } from 'lodash';
 import moment from 'moment';
-import Project from '../Models/mdlProject';
 import mongoose from 'mongoose';
+import multer from 'multer';
+
+import SCHEDULE_TYPE from '../Constants/SCHEDULE_TYPE';
+import TIMEFORMAT from '../constants/TIMEFORMAT';
+import Project from '../Models/mdlProject';
 import ProjectActivity from '../Models/mdlProjectActivitiy';
 import User from '../Models/mdlUser';
-import { resBase, resNotFound, resSingleValidationError, resTable } from '../Responses/resBase';
+import { resBase, resNotFound, resSingleValidationError, resTable, resException } from '../Responses/resBase';
 import rtFtJwt from '../RouteFilters/rtFtJwt';
-import { calculateSkipValue } from '../Utilities/utlType';
-import { toInteger } from 'lodash';
-import SCHEDULE_TYPE from '../Constants/SCHEDULE_TYPE';
+import { calculateSkipValue, generateRandomString, getFileExtension, generateUrlFromFileName } from '../Utilities/utlType';
 
 const rtUser = Router();
 
+// specify form data storage location
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (request, file, callback) => {
+      // get folder name from configuration
+      const folderName = process.env.FPATH_USER_PP;
+
+      // create folder if not exist
+      fs.mkdirSync(folderName, { recursive: true });
+
+      callback(null, process.env.FPATH_USER_PP);
+    },
+    filename: (request, file, callback) => {
+      callback(null, `${moment().format(TIMEFORMAT.YYYYMMDDHHMMSS)}-${generateRandomString()}.${getFileExtension(file.originalname)}`);
+    },
+  }),
+});
+
 // user's minimal information
-rtUser.get('/profileMinimal/:id', rtFtJwt, async (request, response) => {
+rtUser.get('/profileminimal/:id', rtFtJwt, async (request, response) => {
   // search user
   const repoUser = await User.findOne({
     // by id
@@ -21,13 +43,23 @@ rtUser.get('/profileMinimal/:id', rtFtJwt, async (request, response) => {
   })
     .populate('department', '-_id name')
     .populate('position', '-_id name')
-    .select('-_id username name');
+    .select('-_id username name file_profile_picture');
+
   // validate
   if (!repoUser) return resNotFound('user', response);
   if (!repoUser.department) return resNotFound('user department', response);
   if (!repoUser.position) return resNotFound('user position', response);
 
-  return resBase(repoUser, response);
+  return resBase(
+    {
+      username: repoUser.username,
+      name: repoUser.name,
+      url_profile_picture: generateUrlFromFileName(process.env.PPATH_USER_PP, repoUser.file_profile_picture),
+      department: repoUser.department,
+      position: repoUser.position,
+    },
+    response
+  );
 });
 
 // recent projects
@@ -78,6 +110,9 @@ rtUser.get('/recentprojects', rtFtJwt, async (request, response) => {
 
   return resBase(recentProjects, response);
 });
+
+// all projects
+rtUser.get('/projects', rtFtJwt, async (request, response) => {});
 
 // recent activities
 rtUser.get('/recentactivities', rtFtJwt, async (request, response) => {
@@ -170,10 +205,26 @@ rtUser.get('/schedule', rtFtJwt, async (request, response) => {
 // profile (full)
 rtUser.get('/profile', rtFtJwt, async (request, response) => {
   // search user
-  const repoUser = await User.findOne({ _id: request.user.id }).populate('department', 'name').populate('position', 'name');
+  const repoUser = await User.findOne({ _id: request.user.id }).populate('department', 'name').populate('position', 'name').select('-__v -password -todo_reminder');
   if (!repoUser) return resNotFound('user', response);
 
-  return resBase(repoUser, response);
+  return resBase(
+    {
+      username: repoUser.username,
+      email: repoUser.email,
+      name: repoUser.name,
+      password: repoUser.password,
+      create_date: repoUser.create_date,
+      update_date: repoUser.update_date,
+      is_active: repoUser.is_active,
+      department: repoUser.department,
+      position: repoUser.position,
+      projects: repoUser.projects,
+      file_profile_picture: repoUser.file_profile_picture,
+      url_profile_picture: generateUrlFromFileName(process.env.PPATH_USER_PP, repoUser.file_profile_picture),
+    },
+    response
+  );
 });
 
 // notifications
@@ -185,6 +236,31 @@ rtUser.get('/notifications', rtFtJwt, async (request, response) => {
 rtUser.get('/preferences', rtFtJwt, async (request, response) => {
   return resBase('not implemented', response);
 });
+
+// change profile picture
+rtUser.post('/profilepicture', [rtFtJwt, upload.single('profile_picture')], async (request, response) => {
+  // get user
+  var repoUser = await User.findOne({ _id: request.user.id });
+  if (!repoUser) return resNotFound('user', response);
+
+  // get current time
+  const now = moment();
+
+  // edit user
+  repoUser.file_profile_picture = request.file.filename;
+  repoUser.update_date = now;
+
+  try {
+    // save user
+    const repoUserSaved = await repoUser.save();
+
+    return resBase({ url_profile_picture: generateUrlFromFileName(process.env.PPATH_USER_PP, repoUserSaved.file_profile_picture) }, response);
+  } catch (error) {
+    return resException(error, response);
+  }
+});
+
+// change detail
 
 // set preferences
 rtUser.post('/preferences', rtFtJwt, async (request, response) => {

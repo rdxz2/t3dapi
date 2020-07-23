@@ -1,3 +1,6 @@
+v0.1.20
+	+ change user profile picture  (save & display it again)
+
 v0.1.19
 	+ user's full profile
 

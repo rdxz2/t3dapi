@@ -1,5 +1,7 @@
 import TIMEFORMAT from '../constants/TIMEFORMAT';
 import moment from 'moment';
+import multer from 'multer';
+import fs from 'fs';
 
 // START -- OBJECT
 
@@ -89,6 +91,24 @@ export const makeEllipsis = (input, maxLength = 20) => (input.length > maxLength
 
 // convert iso date to readable format
 export const convertIsoDateToMoment = (input, format = TIMEFORMAT.DDMMMMYYYYHHMMSS) => (input ? moment(input).format(format) : '-');
+
+// generate a random string
+export const generateRandomString = (length = 5) => Math.random().toString(20).substr(2, length);
+
+// get file extension
+export const getFileExtension = (fileName = '') => {
+  // split with '.'
+  const fileNameSplitted = fileName.split('.');
+
+  // return empty string if there are no extension
+  if (fileNameSplitted.length < 2) return '';
+
+  // get last splitted element
+  return fileNameSplitted[fileNameSplitted.length - 1];
+};
+
+// generate url from file name
+export const generateUrlFromFileName = (basePath, fileName) => (fileName ? `${basePath}/${fileName}` : '');
 
 // END -- STRING
 

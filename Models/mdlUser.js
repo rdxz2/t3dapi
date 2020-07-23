@@ -22,9 +22,15 @@ const scmUser = new Schema({
     required: true,
     max: 1024,
   },
+  file_profile_picture: {
+    type: String,
+  },
   create_date: {
     type: Date,
     default: Date.now,
+  },
+  update_date: {
+    type: Date,
   },
   is_active: {
     type: Boolean,
