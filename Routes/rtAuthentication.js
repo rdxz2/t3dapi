@@ -11,6 +11,7 @@ import rtFtJwt from '../RouteFilters/rtFtJwt';
 import rtFtJwtRefresh from '../RouteFilters/rtFtJwtRefresh';
 import { generateJwt, hashPassword, matchPassword } from '../Utilities/utlSecurity';
 import { vldtLogin, vldtRegister } from '../Validations/vldtAuthentication';
+import UserPreference from '../Models/mdlUserPreference';
 
 const rtAuthentication = Router();
 
@@ -40,9 +41,17 @@ rtAuthentication.post('/register', async (request, response) => {
     position: request.body.position,
   });
 
+  // make user preference
+  const tbiRepoUserPreference = new UserPreference({
+    user: tbiRepoUser._id,
+  });
+
   try {
     // save user
     const tbiRepoUserSaved = await tbiRepoUser.save();
+
+    // save user preference
+    await tbiRepoUserPreference.save();
 
     // generate jwt
     const jwt = generateJwt({ id: tbiRepoUserSaved._id, name: tbiRepoUserSaved.name });

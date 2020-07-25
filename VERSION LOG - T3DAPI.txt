@@ -1,3 +1,7 @@
+v0.1.22
+	^ separate user preferences endpoints
+	+ change user theme preferences (dark mode, light & dark theme primary color)
+
 v0.1.21
 	+ user's full projects
 

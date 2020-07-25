@@ -10,9 +10,9 @@ import TIMEFORMAT from '../constants/TIMEFORMAT';
 import Project from '../Models/mdlProject';
 import ProjectActivity from '../Models/mdlProjectActivitiy';
 import User from '../Models/mdlUser';
-import { resBase, resNotFound, resSingleValidationError, resTable, resException } from '../Responses/resBase';
+import { resBase, resException, resNotFound, resSingleValidationError, resTable } from '../Responses/resBase';
 import rtFtJwt from '../RouteFilters/rtFtJwt';
-import { calculateSkipValue, generateRandomString, getFileExtension, generateUrlFromFileName } from '../Utilities/utlType';
+import { calculateSkipValue, generateRandomString, generateUrlFromFileName, getFileExtension } from '../Utilities/utlType';
 
 const rtUser = Router();
 
@@ -246,11 +246,6 @@ rtUser.get('/profile', rtFtJwt, async (request, response) => {
 // notifications
 rtUser.get('/notifications', rtFtJwt, async (request, response) => {
   return resBase([], response);
-});
-
-// get preferences
-rtUser.get('/preferences', rtFtJwt, async (request, response) => {
-  return resBase('not implemented', response);
 });
 
 // change profile picture

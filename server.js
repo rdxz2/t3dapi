@@ -19,6 +19,7 @@ import rtTodo from './Routes/rtTodo';
 import rtUser from './Routes/rtUser';
 import makeStrmProjectHandler from './StreamProject/strmProjectHandler';
 import StrmProjectProjectRoomManager from './StreamProject/strmProjectProjectRoomManager';
+import rtUserPreference from './Routes/rtUserPreference';
 
 // initialize express app
 const app = express();
@@ -71,6 +72,7 @@ app.use('/api/selectlist', rtSelectList);
 
 app.use('/api/authentication', rtAuthentication);
 app.use('/api/user', rtUser);
+app.use('/api/preferences', rtUserPreference);
 
 app.use('/api/project', rtProject);
 app.use('/api/todo', rtTodo);
