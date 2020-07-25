@@ -112,7 +112,23 @@ rtUser.get('/recentprojects', rtFtJwt, async (request, response) => {
 });
 
 // all projects
-rtUser.get('/projects', rtFtJwt, async (request, response) => {});
+rtUser.get('/projects', rtFtJwt, async (request, response) => {
+  // get projects
+  const repoProjects = await Project.find({ $or: [{ author: request.user.id }, { collaborators: request.user.id }] })
+    .populate('author', 'name')
+    .select('code name description collaborators');
+
+  // construct view model
+  const vm = repoProjects.map((repoProject) => ({
+    code: repoProject.code,
+    name: repoProject.name,
+    description: repoProject.description,
+    author: repoProject.author,
+    collaboratorsCount: repoProject.collaborators.length,
+  }));
+
+  return resBase(vm, response);
+});
 
 // recent activities
 rtUser.get('/recentactivities', rtFtJwt, async (request, response) => {
