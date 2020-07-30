@@ -55,7 +55,7 @@ webpush.setVapidDetails(process.env.VAPID_SUBJECT, process.env.VAPID_KEY_PUBLIC,
 // use cors
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: process.env.CORS_ORIGIN.split(', '),
   })
 );
 
